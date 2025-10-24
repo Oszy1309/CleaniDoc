@@ -1,0 +1,82 @@
+.cleaning-logs-page {
+  max-width: 1200px;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  color: #333;
+}
+
+.controls-section {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.date-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.date-picker label {
+  font-weight: 600;
+  color: #333;
+}
+
+.date-picker input {
+  padding: 0.75rem;
+  border: 2px solid #e0e7ff;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.controls-section .btn-primary {
+  margin-left: auto;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #e0e7ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.empty-state svg {
+  color: #999;
+}
+
+.empty-state p {
+  color: #666;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .controls-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-picker {
+    width: 100%;
+  }
+
+  .controls-section .btn-primary {
+    margin-left: 0;
+  }
+}
