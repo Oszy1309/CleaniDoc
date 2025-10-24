@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { isConfigured } from '../config/supabase';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -18,18 +19,43 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
 
+  useEffect(() => {
+    // Prüfe ob Supabase konfiguriert ist
+    if (!isConfigured()) {
+      Alert.alert(
+        '⚠️ Konfigurationsfehler',
+        'Supabase Credentials fehlen. Bitte .env Datei erstellen.\n\nDetails in der Console.',
+        [{ text: 'OK' }]
+      );
+    }
+  }, []);
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Fehler', 'Bitte E-Mail und Passwort eingeben');
       return;
     }
 
+    console.log('🔐 Login-Versuch für:', email);
     setLoading(true);
-    const { error } = await signIn(email, password);
-    setLoading(false);
 
-    if (error) {
-      Alert.alert('Anmeldefehler', error.message);
+    try {
+      const { error } = await signIn(email, password);
+
+      if (error) {
+        console.error('❌ Login-Fehler:', error);
+        Alert.alert(
+          'Anmeldefehler',
+          error.message || 'Anmeldung fehlgeschlagen. Bitte prüfen Sie Ihre Zugangsdaten.'
+        );
+      } else {
+        console.log('✅ Login erfolgreich');
+      }
+    } catch (err) {
+      console.error('❌ Unerwarteter Fehler:', err);
+      Alert.alert('Fehler', 'Ein unerwarteter Fehler ist aufgetreten.');
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const fetchWorkerData = async (userId) => {
+    console.log('📋 Lade Mitarbeiter-Daten für User-ID:', userId);
     try {
       const { data, error } = await supabase
         .from('workers')
@@ -41,21 +42,48 @@ export const AuthProvider = ({ children }) => {
         .eq('user_id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Fehler beim Laden der Mitarbeiter-Daten:', error);
+        // Wenn kein Worker gefunden wurde, User ausloggen
+        if (error.code === 'PGRST116') {
+          console.error('❌ Kein Mitarbeiter-Eintrag für diesen User gefunden');
+          await supabase.auth.signOut();
+          throw new Error('Dieser Account ist kein Mitarbeiter-Account');
+        }
+        throw error;
+      }
+
+      console.log('✅ Mitarbeiter-Daten geladen:', data?.name);
       setWorker(data);
     } catch (error) {
-      console.error('Fehler beim Laden der Mitarbeiter-Daten:', error);
+      console.error('❌ Fehler beim Laden der Mitarbeiter-Daten:', error);
+      // User ausloggen bei Fehler
+      setUser(null);
+      setWorker(null);
     } finally {
       setLoading(false);
     }
   };
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { data, error };
+    console.log('🔐 Versuche Anmeldung mit Supabase...');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('❌ Supabase Auth Fehler:', error.message);
+      } else {
+        console.log('✅ Supabase Auth erfolgreich');
+      }
+
+      return { data, error };
+    } catch (err) {
+      console.error('❌ Unerwarteter Fehler bei signIn:', err);
+      return { data: null, error: err };
+    }
   };
 
   const signOut = async () => {
