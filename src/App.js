@@ -15,6 +15,7 @@ import CleaningLogsPage from './pages/CleaningLogsPage';
 import WorkersPage from './pages/WorkersPage';
 import WorkerLogin from './pages/WorkerLogin';
 import WorkerDashboard from './pages/WorkerDashboard';
+import DailyReportPage from './pages/DailyReportPage';
 
 // Supabase Client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
@@ -75,6 +76,7 @@ function App() {
                   <Route path="/customers/:customerId" element={<CustomerDetail />} />
                   <Route path="/cleaning-plans" element={<CleaningPlans />} />
                   <Route path="/cleaning-logs" element={<CleaningLogsPage />} />
+                  <Route path="/daily-report" element={<DailyReportPage />} />
                   <Route path="/protocols" element={<Protocols />} />
                   <Route path="/workers" element={<WorkersPage />} />
                   <Route path="*" element={<Navigate to="/" />} />
