@@ -19,13 +19,14 @@ function Sidebar() {
   const isActive = (path) => location.pathname === path;
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Dashboard' },
-    { path: '/customers', icon: Users, label: 'Kunden' },
-    { path: '/cleaning-plans', icon: FileText, label: 'Reinigungspläne' },
-    { path: '/cleaning-logs', icon: ClipboardList, label: 'Tagesplan' },
-    { path: '/workers', icon: Users, label: 'Arbeiter' },
-    { path: '/protocols', icon: CheckSquare, label: 'Protokolle' },
-  ];
+  { path: '/', icon: Home, label: 'Dashboard' },
+  { path: '/customers', icon: Users, label: 'Kunden' },
+  { path: '/cleaning-plans', icon: FileText, label: 'Reinigungspläne' },
+  { path: '/cleaning-logs', icon: ClipboardList, label: 'Tagesplan' },
+  { path: '/daily-report', icon: FileText, label: 'Archive' },  // NEU
+  { path: '/workers', icon: Users, label: 'Arbeiter' },
+  { path: '/protocols', icon: CheckSquare, label: 'Protokolle' },
+];
 
   return (
     <aside className={`sidebar ${expanded ? 'expanded' : ''}`}>
