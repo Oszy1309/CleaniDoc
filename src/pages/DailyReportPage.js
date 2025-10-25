@@ -78,9 +78,8 @@ function DailyReportPage() {
     try {
       setGeneratingPDF(true);
 
-      // Dynamisch jsPDF und html2canvas laden
-      const { jsPDF } = await import('jspdf');
-      const html2canvas = (await import('html2canvas')).default;
+      // Dynamisch html2pdf laden
+      const html2pdf = (await import('html2pdf.js')).default;
 
       const reportElement = document.getElementById('daily-report-content');
       if (!reportElement) {
@@ -88,42 +87,32 @@ function DailyReportPage() {
         return;
       }
 
-      // Canvas vom Report erstellen
-      const canvas = await html2canvas(reportElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
+      // PDF-Optionen mit page-break Unterstützung
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `Tagesprotokoll_${selectedDate}_${new Date(selectedDate).toLocaleDateString('de-DE')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: {
+          mode: ['avoid-all', 'css', 'legacy'],
+          before: '.customer-section',
+          after: '.customer-section-divider',
+          avoid: ['.log-entry', '.log-signature', '.signature-image', '.customer-header']
+        }
+      };
 
-      // PDF erstellen
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth - 20; // 10mm margin on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      let heightLeft = imgHeight;
-      let position = 10;
-
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight - 20;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight - 20;
-      }
-
-      // Download
-      const formattedDate = new Date(selectedDate).toLocaleDateString('de-DE');
-      pdf.save(`Tagesprotokoll_${selectedDate}_${formattedDate}.pdf`);
+      // PDF erstellen und herunterladen
+      await html2pdf().set(opt).from(reportElement).save();
     } catch (error) {
       console.error('Fehler beim PDF-Export:', error);
       alert('PDF-Export fehlgeschlagen: ' + error.message);

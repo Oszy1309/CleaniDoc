@@ -277,6 +277,43 @@
   }
 }
 
+/* PDF EXPORT STYLES - Verhindert Seitenumbrüche in kritischen Bereichen */
+.daily-report-view.pdf-export .log-entry {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  display: block;
+  position: relative;
+}
+
+.daily-report-view.pdf-export .log-signature {
+  page-break-inside: avoid;
+  break-inside: avoid;
+  page-break-before: avoid;
+  break-before: avoid;
+}
+
+.daily-report-view.pdf-export .signature-image {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.daily-report-view.pdf-export .customer-section {
+  page-break-inside: auto;
+  break-inside: auto;
+}
+
+.daily-report-view.pdf-export .report-header {
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+.daily-report-view.pdf-export .customer-header {
+  page-break-after: avoid;
+  break-after: avoid;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .report-header {
