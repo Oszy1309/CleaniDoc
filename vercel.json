@@ -1,5 +1,17 @@
 {
-  "buildCommand": "npm install && npx react-scripts build",
-  "outputDirectory": "build",
-  "framework": "create-react-app"
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
