@@ -31,10 +31,10 @@ function WorkerDashboard() {
       if (workerError) throw workerError;
       setWorker(workerData);
 
-      // Aktuelles Datum für Filterung
+      // Aktuelles Datum für Filterung (nur Datum, ohne Zeit)
       const today = new Date().toISOString().split('T')[0];
 
-      // Hole nur heutige Logs (mir zugewiesen oder unzugewiesen)
+      // Hole nur heutige Logs (mir zugewiesen)
       const { data: myLogsData, error: myLogsError } = await supabase
         .from('cleaning_logs')
         .select(`
@@ -44,8 +44,7 @@ function WorkerDashboard() {
           cleaning_plans:cleaning_plan_id(id, name, checklist)
         `)
         .eq('assigned_worker_id', workerData.id)
-        .gte('scheduled_date', today)
-        .lte('scheduled_date', today + 'T23:59:59')
+        .eq('scheduled_date', today)
         .in('status', ['pending', 'in_progress'])
         .order('scheduled_date', { ascending: true });
 
@@ -62,8 +61,7 @@ function WorkerDashboard() {
           cleaning_plans:cleaning_plan_id(id, name, checklist)
         `)
         .is('assigned_worker_id', null)
-        .gte('scheduled_date', today)
-        .lte('scheduled_date', today + 'T23:59:59')
+        .eq('scheduled_date', today)
         .eq('status', 'pending')
         .order('scheduled_date', { ascending: true });
 

@@ -110,18 +110,18 @@ function WorkerLogDetail({ logId, onBack }) {
         if (error) throw error;
       }
 
-      const allCompleted = logSteps.every(s => s.completed);
+      // Status wird nur bei Unterschrift auf 'completed' gesetzt
       const { error: logError } = await supabase
         .from('cleaning_logs')
         .update({
-          status: allCompleted ? 'completed' : 'in_progress',
+          status: 'in_progress',
         })
         .eq('id', logId);
 
       if (logError) throw logError;
 
       alert('Protokoll gespeichert!');
-      fetchLogDetails();
+      // Kein fetchLogDetails() um Steps zu erhalten
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
       alert('Fehler: ' + error.message);
@@ -134,6 +134,10 @@ function WorkerLogDetail({ logId, onBack }) {
     try {
       setSaving(true);
 
+      // Erst die Steps speichern
+      await handleSaveSteps();
+
+      // Dann die Unterschrift speichern und als completed markieren
       const { error } = await supabase
         .from('cleaning_logs')
         .update({
@@ -145,9 +149,9 @@ function WorkerLogDetail({ logId, onBack }) {
 
       if (error) throw error;
 
-      alert('Protokoll unterzeichnet!');
+      alert('Protokoll erfolgreich abgeschlossen und unterzeichnet!');
       setShowSignature(false);
-      fetchLogDetails();
+      // Keine fetchLogDetails() mehr nötig - Status bleibt erhalten
     } catch (error) {
       console.error('Fehler beim Speichern der Unterschrift:', error);
       alert('Fehler: ' + error.message);
