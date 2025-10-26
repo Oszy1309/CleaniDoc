@@ -1,0 +1,297 @@
+.protocols-page {
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.page-header h1 {
+  color: #1e40af;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.filters {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-group svg {
+  color: #64748b;
+}
+
+.filter-group input,
+.filter-group select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #374151;
+  min-width: 120px;
+}
+
+.protocols-content {
+  max-width: 1200px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #64748b;
+  text-align: center;
+}
+
+.empty-state svg {
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.date-group {
+  margin-bottom: 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+}
+
+.date-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.btn-download-day {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-download-day:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.protocols-list {
+  padding: 0;
+}
+
+.protocol-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.protocol-card:hover {
+  background-color: #f8fafc;
+}
+
+.protocol-card:last-child {
+  border-bottom: none;
+}
+
+.protocol-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.protocol-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.protocol-info .area {
+  font-weight: 500;
+  color: #374151;
+}
+
+.protocol-info .plan {
+  color: #059669;
+  font-weight: 500;
+}
+
+.protocol-info .worker {
+  color: #7c3aed;
+  font-weight: 500;
+}
+
+.protocol-info .completed-time {
+  color: #16a34a;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.protocol-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.steps-completed {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.signature-badge {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.btn-download {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);
+}
+
+.btn-download:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(30, 64, 175, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .protocols-page {
+    padding: 15px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-group {
+    justify-content: space-between;
+  }
+
+  .filter-group input,
+  .filter-group select {
+    min-width: auto;
+    flex: 1;
+  }
+
+  .date-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .date-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .protocol-card {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .protocol-actions {
+    align-items: stretch;
+  }
+
+  .status-info {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn-download {
+    justify-content: center;
+  }
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  font-size: 1.1rem;
+  color: #64748b;
+}
