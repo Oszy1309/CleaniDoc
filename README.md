@@ -2,6 +2,10 @@
 
 CleaniDoc ist eine umfassende Lösung zur Verwaltung von Reinigungsdiensten, bestehend aus einer Web-App für Administratoren und einer Mobile-App für Mitarbeiter.
 
+> 🚨 **Sehen Sie nur Quellcode im Browser?** → Lesen Sie [QUICKSTART.md](./QUICKSTART.md)
+>
+> 📦 **Deployment auf Vessel/Vercel/Netlify?** → Lesen Sie [DEPLOYMENT.md](./DEPLOYMENT.md)
+
 ## 📦 Projektstruktur
 
 ```

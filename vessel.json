@@ -1,0 +1,21 @@
+{
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "build",
+  "installCommand": "npm install",
+  "framework": "create-react-app",
+  "nodeVersion": "18",
+  "environmentVariables": {
+    "REACT_APP_SUPABASE_URL": "REQUIRED",
+    "REACT_APP_SUPABASE_ANON_KEY": "REQUIRED"
+  },
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
