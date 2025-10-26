@@ -1,600 +1,285 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../App';
-import { Download, Calendar, FileText, Filter } from 'lucide-react';
-import { generateCleaningLogPDF, downloadPDF } from '../utils/pdfUtils';
-import './Protocols.css';
+import { Download, Calendar, Filter, Eye, Printer } from 'lucide-react';
+import DailyReportViewProfessional from '../components/DailyReportViewProfessional';
+import './DailyReportPage.css';
 
-function Protocols() {
-  const [protocols, setProtocols] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
-  const [customerFilter, setCustomerFilter] = useState('');
+function DailyReportPage() {
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [logs, setLogs] = useState([]);
   const [customers, setCustomers] = useState([]);
-  const [filteredProtocols, setFilteredProtocols] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState('all');
+  const [selectedAreaId, setSelectedAreaId] = useState('all');
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-  useEffect(() => {
-    fetchProtocols();
-    fetchCustomers();
-  }, []);
-
-  useEffect(() => {
-    filterProtocols();
-  }, [protocols, dateFilter, customerFilter]);
-
-  const fetchCustomers = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+
+      const { data: logsData, error: logsError } = await supabase
+        .from('cleaning_logs')
+        .select(`
+          *,
+          customers:customer_id(id, name, email, contact_person),
+          areas:area_id(id, name, description),
+          cleaning_plans:cleaning_plan_id(id, name, description),
+          cleaning_log_steps(*)
+        `)
+        .eq('scheduled_date', selectedDate)
+        .order('created_at', { ascending: false });
+
+      if (logsError) throw logsError;
+      setLogs(logsData || []);
+
+      const { data: customersData } = await supabase
         .from('customers')
         .select('id, name')
         .order('name', { ascending: true });
 
-      if (error) throw error;
-      setCustomers(data || []);
+      const { data: areasData } = await supabase
+        .from('areas')
+        .select('id, name')
+        .order('name', { ascending: true });
+
+      setCustomers(customersData || []);
+      setAreas(areasData || []);
     } catch (error) {
-      console.error('Fehler beim Laden der Kunden:', error);
-    }
-  };
-
-  const fetchProtocols = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('cleaning_logs')
-        .select(`
-          *,
-          customers:customer_id(id, name),
-          areas:area_id(id, name),
-          cleaning_plans:cleaning_plan_id(id, name, description),
-          cleaning_log_steps(*)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Hole Worker-Informationen separat für jedes Log
-      const protocolsWithWorkers = await Promise.all((data || []).map(async (protocol) => {
-        if (protocol.assigned_worker_id) {
-          const { data: workerData } = await supabase
-            .from('workers')
-            .select('id, name')
-            .eq('id', protocol.assigned_worker_id)
-            .single();
-
-          return { ...protocol, workers: workerData };
-        }
-        return protocol;
-      }));
-
-      setProtocols(protocolsWithWorkers);
-    } catch (error) {
-      console.error('Fehler beim Laden der Protokolle:', error);
+      console.error('Fehler beim Laden der Daten:', error);
     } finally {
       setLoading(false);
     }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const filteredLogs = logs.filter(log => {
+    if (selectedCustomerId !== 'all' && log.customer_id !== selectedCustomerId) return false;
+    if (selectedAreaId !== 'all' && log.area_id !== selectedAreaId) return false;
+    return true;
+  });
+
+  const getStatistics = () => {
+    return {
+      totalLogs: filteredLogs.length,
+      completedLogs: filteredLogs.filter(l => l.status === 'completed').length,
+      inProgressLogs: filteredLogs.filter(l => l.status === 'in_progress').length,
+      pendingLogs: filteredLogs.filter(l => l.status === 'pending').length,
+      signedLogs: filteredLogs.filter(l => l.signature).length,
+    };
   };
 
-  const filterProtocols = () => {
-    let filtered = [...protocols];
-
-    if (dateFilter) {
-      filtered = filtered.filter(protocol =>
-        protocol.scheduled_date === dateFilter
-      );
-    }
-
-    if (customerFilter) {
-      filtered = filtered.filter(protocol =>
-        protocol.customer_id === parseInt(customerFilter)
-      );
-    }
-
-    setFilteredProtocols(filtered);
+  const handlePrint = () => {
+    window.print();
   };
 
-  const downloadSingleProtocol = async (protocol) => {
+  const handleGeneratePDF = async () => {
     try {
-      const pdfData = {
-        customerName: protocol.customers?.name || 'Unbekannt',
-        areaName: protocol.areas?.name || 'Unbekannt',
-        scheduledDate: new Date(protocol.scheduled_date).toLocaleDateString('de-DE'),
-        status: protocol.status === 'completed' ? 'Abgeschlossen' : 'Offen',
-        planName: protocol.cleaning_plans?.name || 'Kein Plan',
-        planDescription: protocol.cleaning_plans?.description || '',
-        steps: protocol.cleaning_log_steps || [],
-        signature: protocol.signature,
-        completedAt: protocol.completed_at,
-        workerName: protocol.workers?.name || 'Unbekannt'
-      };
+      setExportingPDF(true);
 
-      const pdf = generateCleaningLogPDF(pdfData);
-      const filename = `Protokoll_${protocol.customers?.name}_${protocol.scheduled_date}.pdf`;
-      downloadPDF(pdf, filename);
-    } catch (error) {
-      console.error('Fehler beim PDF-Download:', error);
-      alert('Fehler beim Erstellen des PDFs: ' + error.message);
-    }
-  };
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = (await import('html2canvas')).default;
 
-  const downloadDailyReport = async (date) => {
-    try {
-      const dailyProtocols = filteredProtocols.filter(p => p.scheduled_date === date);
-
-      if (dailyProtocols.length === 0) {
-        alert('Keine Protokolle für dieses Datum gefunden.');
+      const reportElement = document.getElementById('daily-report-professional');
+      if (!reportElement) {
+        alert('Bericht konnte nicht generiert werden');
         return;
       }
 
-      // Generate combined PDF using the existing utility
-      const { generateCleaningLogPDF } = await import('../utils/pdfUtils');
-      const jsPDF = (await import('jspdf')).jsPDF;
+      const canvas = await html2canvas(reportElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        allowTaint: true,
+      });
 
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
+        compress: true,
       });
 
+      const imgData = canvas.toDataURL('image/png');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      let yPosition = margin;
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      // Title Page Header
-      const titleStartY = yPosition;
+      let heightLeft = imgHeight;
+      let position = 0;
 
-      // Left side - Title
-      pdf.setFontSize(24);
-      pdf.setTextColor(30, 64, 175);
-      pdf.text('Tagesprotokoll-Zusammenfassung', margin, yPosition);
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
 
-      // Right side - First customer info (if any protocols exist)
-      if (dailyProtocols.length > 0) {
-        const firstCustomer = dailyProtocols[0];
-        pdf.setFontSize(12);
-        pdf.setTextColor(30, 64, 175);
-        const customerText = firstCustomer.customers?.name || 'Kunde unbekannt';
-        const customerWidth = pdf.getTextWidth(customerText);
-        const customerHeaderX = pageWidth - margin - customerWidth;
-        pdf.text(customerText, customerHeaderX, yPosition);
-
-        yPosition += 8;
-        pdf.setFontSize(10);
-        pdf.setTextColor(100, 100, 100);
-        const areaText = `Mehrere Bereiche (${dailyProtocols.length} Protokolle)`;
-        const areaWidth = pdf.getTextWidth(areaText);
-        const areaHeaderX = pageWidth - margin - areaWidth;
-        pdf.text(areaText, areaHeaderX, yPosition);
-      }
-
-      // Left side - Date info
-      yPosition = titleStartY + 15;
-      pdf.setFontSize(14);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`Datum: ${new Date(date).toLocaleDateString('de-DE')}`, margin, yPosition);
-
-      yPosition += 10;
-      pdf.setFontSize(12);
-      pdf.text(`Anzahl Protokolle: ${dailyProtocols.length}`, margin, yPosition);
-
-      yPosition += 15;
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 20;
-
-      // Add summary list
-      pdf.setFontSize(14);
-      pdf.setTextColor(30, 64, 175);
-      pdf.text('Übersicht der Protokolle:', margin, yPosition);
-      yPosition += 10;
-
-      pdf.setFontSize(10);
-      pdf.setTextColor(0, 0, 0);
-
-      dailyProtocols.forEach((protocol, index) => {
-        pdf.text(`${index + 1}. ${protocol.customers?.name} - ${protocol.areas?.name}`, margin + 5, yPosition);
-        yPosition += 6;
-        pdf.text(`   Status: ${protocol.status === 'completed' ? 'Abgeschlossen' : protocol.status === 'in_progress' ? 'In Bearbeitung' : 'Offen'}`, margin + 5, yPosition);
-        yPosition += 6;
-        if (protocol.workers?.name) {
-          pdf.text(`   Arbeiter: ${protocol.workers.name}`, margin + 5, yPosition);
-          yPosition += 6;
-        }
-        yPosition += 3;
-      });
-
-      // Add each protocol as full content
-      for (const [index, protocol] of dailyProtocols.entries()) {
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
         pdf.addPage();
-
-        const pdfData = {
-          customerName: protocol.customers?.name || 'Unbekannt',
-          areaName: protocol.areas?.name || 'Unbekannt',
-          scheduledDate: new Date(protocol.scheduled_date).toLocaleDateString('de-DE'),
-          status: protocol.status === 'completed' ? 'Abgeschlossen' : protocol.status === 'in_progress' ? 'In Bearbeitung' : 'Offen',
-          planName: protocol.cleaning_plans?.name || 'Kein Plan',
-          planDescription: protocol.cleaning_plans?.description || '',
-          steps: protocol.cleaning_log_steps || [],
-          signature: protocol.signature,
-          completedAt: protocol.completed_at,
-          workerName: protocol.workers?.name || 'Unbekannt'
-        };
-
-        // Manually add protocol content to current PDF
-        let currentY = margin;
-
-        // Header
-        const startCurrentY = currentY;
-
-        // Left side - Protocol title
-        pdf.setFontSize(20);
-        pdf.setTextColor(30, 64, 175);
-        pdf.text(`Protokoll ${index + 1}: ${pdfData.customerName}`, margin, currentY);
-
-        // Right side - Customer info
-        pdf.setFontSize(12);
-        pdf.setTextColor(30, 64, 175);
-        const customerText = pdfData.customerName || 'Kunde unbekannt';
-        const customerWidth = pdf.getTextWidth(customerText);
-        const customerHeaderX = pageWidth - margin - customerWidth;
-        pdf.text(customerText, customerHeaderX, currentY);
-
-        currentY += 8;
-        pdf.setFontSize(10);
-        pdf.setTextColor(100, 100, 100);
-        const areaText = pdfData.areaName || 'Bereich unbekannt';
-        const areaWidth = pdf.getTextWidth(areaText);
-        const areaHeaderX = pageWidth - margin - areaWidth;
-        pdf.text(areaText, areaHeaderX, currentY);
-
-        // Left side - Date
-        currentY = startCurrentY + 12;
-        pdf.setFontSize(10);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text(`Datum: ${pdfData.scheduledDate}`, margin, currentY);
-
-        currentY += 10;
-        pdf.setDrawColor(200, 200, 200);
-        pdf.line(margin, currentY, pageWidth - margin, currentY);
-        currentY += 10;
-
-        // Customer Info
-        pdf.setFontSize(12);
-        pdf.setTextColor(30, 64, 175);
-        pdf.text('Kundeninformation', margin, currentY);
-        currentY += 8;
-
-        pdf.setFontSize(10);
-        pdf.setTextColor(0, 0, 0);
-
-        const customerInfo = [
-          { label: 'Kunde:', value: pdfData.customerName },
-          { label: 'Bereich:', value: pdfData.areaName },
-          { label: 'Termin:', value: pdfData.scheduledDate },
-          { label: 'Status:', value: pdfData.status },
-          { label: 'Arbeiter:', value: pdfData.workerName },
-        ];
-
-        customerInfo.forEach((info) => {
-          pdf.setFont(undefined, 'bold');
-          pdf.text(info.label, margin, currentY);
-          pdf.setFont(undefined, 'normal');
-          pdf.text(info.value, margin + 40, currentY);
-          currentY += 7;
-        });
-
-        currentY += 10;
-
-        // Plan Info
-        pdf.setFontSize(12);
-        pdf.setTextColor(30, 64, 175);
-        pdf.text('Reinigungsplan', margin, currentY);
-        currentY += 8;
-
-        pdf.setFontSize(10);
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFont(undefined, 'bold');
-        pdf.text('Plan:', margin, currentY);
-        pdf.setFont(undefined, 'normal');
-        pdf.text(pdfData.planName, margin + 40, currentY);
-        currentY += 7;
-
-        if (pdfData.planDescription) {
-          pdf.setFont(undefined, 'bold');
-          pdf.text('Beschreibung:', margin, currentY);
-          currentY += 7;
-          pdf.setFont(undefined, 'normal');
-
-          const splitDescription = pdf.splitTextToSize(pdfData.planDescription, pageWidth - margin - 30);
-          splitDescription.forEach((line) => {
-            pdf.text(line, margin + 10, currentY);
-            currentY += 5;
-          });
-        }
-
-        currentY += 10;
-
-        // Steps Table
-        pdf.setFontSize(12);
-        pdf.setTextColor(30, 64, 175);
-        pdf.text('Reinigungsschritte', margin, currentY);
-        currentY += 10;
-
-        // Table setup
-        const tableStartY = currentY;
-        const colWidths = {
-          step: 40,
-          agent: 35,
-          time: 20,
-          status: 20,
-          notes: pageWidth - margin - margin - 115
-        };
-
-        let tableX = margin;
-
-        // Header row
-        pdf.setFontSize(7);
-        pdf.setFont(undefined, 'bold');
-        pdf.setTextColor(30, 64, 175);
-
-        // Draw header background
-        pdf.setFillColor(240, 248, 255);
-        pdf.rect(margin, currentY - 1, pageWidth - margin - margin, 6, 'F');
-
-        // Header text
-        pdf.text('Schritt', tableX + 2, currentY + 3);
-        tableX += colWidths.step;
-        pdf.text('Mittel', tableX + 2, currentY + 3);
-        tableX += colWidths.agent;
-        pdf.text('Einwirkzeit', tableX + 2, currentY + 3);
-        tableX += colWidths.time;
-        pdf.text('Status', tableX + 2, currentY + 3);
-        tableX += colWidths.status;
-        pdf.text('Notizen', tableX + 2, currentY + 3);
-
-        currentY += 8;
-
-        // Table content
-        pdf.setFont(undefined, 'normal');
-        pdf.setFontSize(6);
-
-        pdfData.steps.forEach((step, stepIndex) => {
-          // Check if we need a new page (reserve 60mm for signature)
-          if (currentY > pageHeight - 60) {
-            pdf.addPage();
-            currentY = margin;
-          }
-
-          tableX = margin;
-          const rowHeight = 6;
-
-          // Row background (alternating)
-          if (stepIndex % 2 === 0) {
-            pdf.setFillColor(248, 249, 250);
-            pdf.rect(margin, currentY - 1, pageWidth - margin - margin, rowHeight, 'F');
-          }
-
-          pdf.setTextColor(0, 0, 0);
-
-          // Step name (truncated if too long)
-          const stepName = step.step_name.length > 25 ? step.step_name.substring(0, 22) + '...' : step.step_name;
-          pdf.text(stepName, tableX + 2, currentY + 3);
-          tableX += colWidths.step;
-
-          // Agent
-          const agent = step.cleaning_agent && step.cleaning_agent !== 'none' ? step.cleaning_agent : '-';
-          const agentText = agent.length > 20 ? agent.substring(0, 17) + '...' : agent;
-          pdf.text(agentText, tableX + 2, currentY + 3);
-          tableX += colWidths.agent;
-
-          // Time
-          const timeText = step.dwell_time_minutes > 0 ? `${step.dwell_time_minutes}min` : '-';
-          pdf.text(timeText, tableX + 2, currentY + 3);
-          tableX += colWidths.time;
-
-          // Status
-          if (step.completed) {
-            pdf.setTextColor(0, 150, 0);
-          } else {
-            pdf.setTextColor(150, 150, 150);
-          }
-          pdf.text(step.completed ? '✓' : '○', tableX + 2, currentY + 3);
-          pdf.setTextColor(0, 0, 0);
-          tableX += colWidths.status;
-
-          // Notes (truncated if too long)
-          if (step.worker_notes && step.worker_notes.trim()) {
-            const notes = step.worker_notes.length > 40 ? step.worker_notes.substring(0, 37) + '...' : step.worker_notes;
-            pdf.text(notes, tableX + 2, currentY + 3);
-          }
-
-          currentY += rowHeight;
-        });
-
-        // Table border
-        pdf.setDrawColor(200, 200, 200);
-        pdf.rect(margin, tableStartY - 1, pageWidth - margin - margin, currentY - tableStartY + 1);
-
-        // Column separators
-        tableX = margin + colWidths.step;
-        pdf.line(tableX, tableStartY - 1, tableX, currentY);
-        tableX += colWidths.agent;
-        pdf.line(tableX, tableStartY - 1, tableX, currentY);
-        tableX += colWidths.time;
-        pdf.line(tableX, tableStartY - 1, tableX, currentY);
-        tableX += colWidths.status;
-        pdf.line(tableX, tableStartY - 1, tableX, currentY);
-
-        currentY += 5;
-
-        // Signature
-        if (pdfData.signature) {
-          currentY += 10;
-
-          // Check if we need a new page for signature
-          if (currentY > pageHeight - 60) {
-            pdf.addPage();
-            currentY = margin;
-          }
-
-          pdf.setDrawColor(200, 200, 200);
-          pdf.line(margin, currentY, pageWidth - margin, currentY);
-          currentY += 10;
-
-          pdf.setFontSize(12);
-          pdf.setTextColor(30, 64, 175);
-          pdf.text('Unterschrift', margin, currentY);
-          currentY += 15;
-
-          // Add signature image
-          try {
-            pdf.addImage(pdfData.signature, 'PNG', margin, currentY, 80, 40);
-            currentY += 45;
-          } catch (error) {
-            console.warn('Fehler beim Hinzufügen der Unterschrift:', error);
-          }
-
-          if (pdfData.completedAt) {
-            pdf.setFontSize(9);
-            pdf.setTextColor(100, 100, 100);
-            pdf.text(
-              `Unterschrieben am: ${new Date(pdfData.completedAt).toLocaleDateString('de-DE')}`,
-              margin,
-              currentY
-            );
-          }
-        }
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
       }
 
-      const filename = `Tagesprotokoll_${date}.pdf`;
-      downloadPDF(pdf, filename);
+      const formattedDate = new Date(selectedDate).toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).replace(/\//g, '-');
+      
+      pdf.save(`Tagesprotokoll_${selectedDate}_${formattedDate}.pdf`);
     } catch (error) {
-      console.error('Fehler beim Tagesreport-Download:', error);
-      alert('Fehler beim Erstellen des Tagesreports: ' + error.message);
+      console.error('Fehler beim PDF-Export:', error);
+      alert('PDF-Export fehlgeschlagen: ' + error.message);
+    } finally {
+      setExportingPDF(false);
     }
   };
 
-  // Group protocols by date
-  const protocolsByDate = filteredProtocols.reduce((acc, protocol) => {
-    const date = protocol.scheduled_date;
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date].push(protocol);
-    return acc;
-  }, {});
-
-  if (loading) {
-    return <div className="loading">Lädt Protokolle...</div>;
-  }
+  const stats = getStatistics();
 
   return (
-    <div className="protocols-page">
+    <div className="daily-report-page">
       <div className="page-header">
-        <h1>Protokoll-Archiv</h1>
-        <div className="filters">
-          <div className="filter-group">
-            <Calendar size={16} />
+        <h1>Tagesprotokoll & Archivierung</h1>
+        <p className="subtitle">Professionelle A4-Sammelberichte aller Reinigungsprotokolle für einen Tag</p>
+      </div>
+
+      <div className="controls-section">
+        <div className="control-group">
+          <label htmlFor="date-picker">Datum:</label>
+          <div className="date-picker-wrapper">
+            <Calendar size={18} />
             <input
+              id="date-picker"
               type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              placeholder="Datum filtern"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
             />
           </div>
-          <div className="filter-group">
-            <Filter size={16} />
-            <select
-              value={customerFilter}
-              onChange={(e) => setCustomerFilter(e.target.value)}
-            >
-              <option value="">Alle Kunden</option>
-              {customers.map(customer => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        </div>
+
+        <div className="control-group">
+          <label htmlFor="customer-filter">Kunde:</label>
+          <select
+            id="customer-filter"
+            value={selectedCustomerId}
+            onChange={(e) => setSelectedCustomerId(e.target.value)}
+          >
+            <option value="all">Alle Kunden</option>
+            {customers.map(customer => (
+              <option key={customer.id} value={customer.id}>
+                {customer.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="control-group">
+          <label htmlFor="area-filter">Bereich:</label>
+          <select
+            id="area-filter"
+            value={selectedAreaId}
+            onChange={(e) => setSelectedAreaId(e.target.value)}
+          >
+            <option value="all">Alle Bereiche</option>
+            {areas.map(area => (
+              <option key={area.id} value={area.id}>
+                {area.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="control-actions">
+          <button
+            className="btn-secondary"
+            onClick={() => setShowPreview(!showPreview)}
+            title="Vorschau anzeigen"
+          >
+            <Eye size={18} /> {showPreview ? 'Verstecken' : 'Vorschau'}
+          </button>
+          <button
+            className="btn-secondary"
+            onClick={handlePrint}
+            disabled={filteredLogs.length === 0}
+            title="Drucken (Strg+P)"
+          >
+            <Printer size={18} /> Drucken
+          </button>
+          <button
+            className="btn-primary"
+            onClick={handleGeneratePDF}
+            disabled={exportingPDF || filteredLogs.length === 0}
+            title="Professionelles A4-PDF herunterladen"
+          >
+            <Download size={18} /> {exportingPDF ? 'PDF wird generiert...' : 'PDF exportieren'}
+          </button>
         </div>
       </div>
 
-      <div className="protocols-content">
-        {Object.keys(protocolsByDate).length === 0 ? (
-          <div className="empty-state">
-            <FileText size={48} />
-            <p>Keine Protokolle gefunden</p>
-            {dateFilter && <p>Für Datum: {dateFilter}</p>}
-            {customerFilter && <p>Für Kunde: {customers.find(c => c.id == customerFilter)?.name}</p>}
+      {!loading && (
+        <div className="stats-grid">
+          <div className="stat-item">
+            <span className="stat-label">Gesamt</span>
+            <span className="stat-value">{stats.totalLogs}</span>
           </div>
-        ) : (
-          Object.keys(protocolsByDate)
-            .sort((a, b) => new Date(b) - new Date(a))
-            .map(date => (
-              <div key={date} className="date-group">
-                <div className="date-header">
-                  <h2>{new Date(date).toLocaleDateString('de-DE', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}</h2>
-                  <button
-                    className="btn-download-day"
-                    onClick={() => downloadDailyReport(date)}
-                  >
-                    <Download size={16} />
-                    Tagesreport PDF
-                  </button>
-                </div>
+          <div className="stat-item success">
+            <span className="stat-label">Abgeschlossen</span>
+            <span className="stat-value">{stats.completedLogs}</span>
+          </div>
+          <div className="stat-item warning">
+            <span className="stat-label">In Bearbeitung</span>
+            <span className="stat-value">{stats.inProgressLogs}</span>
+          </div>
+          <div className="stat-item info">
+            <span className="stat-label">Ausstehend</span>
+            <span className="stat-value">{stats.pendingLogs}</span>
+          </div>
+          <div className="stat-item success">
+            <span className="stat-label">Unterschrieben</span>
+            <span className="stat-value">{stats.signedLogs}</span>
+          </div>
+        </div>
+      )}
 
-                <div className="protocols-list">
-                  {protocolsByDate[date].map(protocol => (
-                    <div key={protocol.id} className="protocol-card">
-                      <div className="protocol-info">
-                        <h3>{protocol.customers?.name}</h3>
-                        <p className="area">{protocol.areas?.name}</p>
-                        <p className="plan">{protocol.cleaning_plans?.name}</p>
-                        <p className="worker">Arbeiter: {protocol.workers?.name}</p>
-                        {protocol.completed_at && (
-                          <p className="completed-time">
-                            Abgeschlossen: {new Date(protocol.completed_at).toLocaleString('de-DE')}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="protocol-actions">
-                        <div className="status-info">
-                          <span className="steps-completed">
-                            {protocol.cleaning_log_steps?.filter(s => s.completed).length || 0}/
-                            {protocol.cleaning_log_steps?.length || 0} Schritte
-                          </span>
-                          <span className={`status-badge ${protocol.status}`}>
-                            {protocol.status === 'completed' ? '✓ Abgeschlossen' :
-                             protocol.status === 'in_progress' ? '⏳ In Bearbeitung' :
-                             '📋 Offen'}
-                          </span>
-                          {protocol.signature && (
-                            <span className="signature-badge">✍️ Unterschrieben</span>
-                          )}
-                        </div>
-
-                        <button
-                          className="btn-download"
-                          onClick={() => downloadSingleProtocol(protocol)}
-                        >
-                          <Download size={16} />
-                          PDF
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+      {loading ? (
+        <div className="loading">Lädt Protokolle...</div>
+      ) : filteredLogs.length === 0 ? (
+        <div className="empty-state">
+          <p>Keine Protokolle für den {new Date(selectedDate).toLocaleDateString('de-DE')} vorhanden</p>
+        </div>
+      ) : (
+        <>
+          {showPreview && (
+            <div className="report-preview-container">
+              <div id="daily-report-professional">
+                <DailyReportViewProfessional
+                  logs={filteredLogs}
+                  date={selectedDate}
+                  customers={customers}
+                  areas={areas}
+                />
               </div>
-            ))
-        )}
-      </div>
+            </div>
+          )}
+
+          <div id="daily-report-professional" style={{ display: 'none' }}>
+            <DailyReportViewProfessional
+              logs={filteredLogs}
+              date={selectedDate}
+              customers={customers}
+              areas={areas}
+              isPdfExport={true}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-export default Protocols;
+export default DailyReportPage;

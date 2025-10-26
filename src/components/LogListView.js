@@ -186,7 +186,12 @@ function LogListView({ logs, onSelectLog, onDeleteLog }) {
 
       <div className="logs-grid">
         {logs.map((log) => (
-          <div key={log.id} className={`log-card ${selectedLogs.has(log.id) ? 'selected' : ''}`}>
+          <div
+            key={log.id}
+            className={`log-card ${selectedLogs.has(log.id) ? 'selected' : ''}`}
+            onDoubleClick={() => onSelectLog(log)}
+            title="Doppelklick zum Bearbeiten"
+          >
             <div className="log-header">
               {selectMode && (
                 <div className="log-checkbox">
@@ -212,6 +217,12 @@ function LogListView({ logs, onSelectLog, onDeleteLog }) {
             <div className="log-info">
               <p><strong>Plan:</strong> {log.cleaning_plans?.name}</p>
               <p><strong>Datum:</strong> {log.scheduled_date}</p>
+              {log.created_at && (
+                <p><strong>Erstellt:</strong> {new Date(log.created_at).toLocaleString('de-DE')}</p>
+              )}
+              {log.completed_at && (
+                <p><strong>Abgeschlossen:</strong> {new Date(log.completed_at).toLocaleString('de-DE')}</p>
+              )}
               
               <div className="worker-assignment">
                 <label>Arbeiter:</label>

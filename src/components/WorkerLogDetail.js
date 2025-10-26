@@ -89,7 +89,21 @@ function WorkerLogDetail({ logId, onBack }) {
 
   const handleStepChange = (stepIndex, field, value) => {
     const updated = [...logSteps];
-    updated[stepIndex] = { ...updated[stepIndex], [field]: value };
+    const step = { ...updated[stepIndex] };
+
+    // Zeiterfassung für completed Status
+    if (field === 'completed') {
+      if (value) {
+        // Schritt wird abgehakt - setze completed_at Zeitstempel
+        step.completed_at = new Date().toISOString();
+      } else {
+        // Schritt wird wieder freigegeben - entferne Zeitstempel
+        step.completed_at = null;
+      }
+    }
+
+    step[field] = value;
+    updated[stepIndex] = step;
     setLogSteps(updated);
   };
 
@@ -102,7 +116,7 @@ function WorkerLogDetail({ logId, onBack }) {
           .from('cleaning_log_steps')
           .update({
             completed: step.completed,
-            completed_at: step.completed ? new Date().toISOString() : null,
+            completed_at: step.completed_at || (step.completed ? new Date().toISOString() : null),
             worker_notes: step.worker_notes,
           })
           .eq('id', step.id);
@@ -120,8 +134,8 @@ function WorkerLogDetail({ logId, onBack }) {
 
       if (logError) throw logError;
 
-      alert('Protokoll gespeichert!');
-      // Kein fetchLogDetails() um Steps zu erhalten
+      // Speichern erfolgreich - direkt zurück zur Übersicht
+      onBack();
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
       alert('Fehler: ' + error.message);
@@ -167,8 +181,9 @@ function WorkerLogDetail({ logId, onBack }) {
 
       if (error) throw error;
 
-      alert('Protokoll erfolgreich abgeschlossen und unterzeichnet!');
+      // Unterschrift erfolgreich - direkt zurück zur Übersicht
       setShowSignature(false);
+      onBack();
     } catch (error) {
       console.error('Fehler beim Speichern der Unterschrift:', error);
       alert('Fehler: ' + error.message);
@@ -228,6 +243,9 @@ function WorkerLogDetail({ logId, onBack }) {
                   )}
                   {step.dwell_time_minutes > 0 && (
                     <p className="dwell">Einwirkzeit: {step.dwell_time_minutes} min</p>
+                  )}
+                  {step.completed_at && (
+                    <p className="completion-time">Abgeschlossen: {new Date(step.completed_at).toLocaleTimeString('de-DE')}</p>
                   )}
                 </div>
 

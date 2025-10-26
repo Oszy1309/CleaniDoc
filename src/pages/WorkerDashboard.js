@@ -45,7 +45,7 @@ function WorkerDashboard() {
         `)
         .eq('assigned_worker_id', workerData.id)
         .eq('scheduled_date', today)
-        .in('status', ['pending', 'in_progress'])
+        .in('status', ['pending', 'in_progress', 'completed'])
         .order('scheduled_date', { ascending: true });
 
       if (myLogsError) throw myLogsError;
@@ -160,7 +160,9 @@ function WorkerDashboard() {
                   <div className="log-card-header">
                     <h3>{log.customers?.name}</h3>
                     <span className={`status-badge ${log.status}`}>
-                      {log.status === 'completed' ? '✓ Erledigt' : '⏳ In Bearbeitung'}
+                      {log.status === 'completed' ? '✓ Erledigt' :
+                       log.status === 'in_progress' ? '⏳ In Bearbeitung' :
+                       '📋 Ausstehend'}
                     </span>
                   </div>
                   <p className="area">{log.areas?.name}</p>

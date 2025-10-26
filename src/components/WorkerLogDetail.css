@@ -114,6 +114,12 @@
   font-weight: 600;
 }
 
+.step-details .completion-time {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
 .step-inputs {
   display: flex;
   flex-direction: column;
