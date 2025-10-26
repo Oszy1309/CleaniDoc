@@ -124,14 +124,18 @@ function Protocols() {
         return;
       }
 
-      // Generate combined PDF for all protocols of that day
-      const pdf = new (await import('jspdf')).jsPDF({
+      // Generate combined PDF using the existing utility
+      const { generateCleaningLogPDF } = await import('../utils/pdfUtils');
+      const jsPDF = (await import('jspdf')).jsPDF;
+
+      const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
 
       const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 15;
       let yPosition = margin;
 
@@ -151,20 +155,38 @@ function Protocols() {
       yPosition += 15;
       pdf.setDrawColor(200, 200, 200);
       pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 15;
+      yPosition += 20;
 
-      // Add each protocol
-      for (const [index, protocol] of dailyProtocols.entries()) {
-        if (index > 0) {
-          pdf.addPage();
-          yPosition = margin;
+      // Add summary list
+      pdf.setFontSize(14);
+      pdf.setTextColor(30, 64, 175);
+      pdf.text('Übersicht der Protokolle:', margin, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+
+      dailyProtocols.forEach((protocol, index) => {
+        pdf.text(`${index + 1}. ${protocol.customers?.name} - ${protocol.areas?.name}`, margin + 5, yPosition);
+        yPosition += 6;
+        pdf.text(`   Status: ${protocol.status === 'completed' ? 'Abgeschlossen' : protocol.status === 'in_progress' ? 'In Bearbeitung' : 'Offen'}`, margin + 5, yPosition);
+        yPosition += 6;
+        if (protocol.workers?.name) {
+          pdf.text(`   Arbeiter: ${protocol.workers.name}`, margin + 5, yPosition);
+          yPosition += 6;
         }
+        yPosition += 3;
+      });
+
+      // Add each protocol as full content
+      for (const [index, protocol] of dailyProtocols.entries()) {
+        pdf.addPage();
 
         const pdfData = {
           customerName: protocol.customers?.name || 'Unbekannt',
           areaName: protocol.areas?.name || 'Unbekannt',
           scheduledDate: new Date(protocol.scheduled_date).toLocaleDateString('de-DE'),
-          status: protocol.status === 'completed' ? 'Abgeschlossen' : 'Offen',
+          status: protocol.status === 'completed' ? 'Abgeschlossen' : protocol.status === 'in_progress' ? 'In Bearbeitung' : 'Offen',
           planName: protocol.cleaning_plans?.name || 'Kein Plan',
           planDescription: protocol.cleaning_plans?.description || '',
           steps: protocol.cleaning_log_steps || [],
@@ -173,16 +195,168 @@ function Protocols() {
           workerName: protocol.workers?.name || 'Unbekannt'
         };
 
-        // Add protocol content to existing PDF
-        const singlePdf = generateCleaningLogPDF(pdfData);
-        const pages = singlePdf.getNumberOfPages();
+        // Manually add protocol content to current PDF
+        let currentY = margin;
 
-        for (let i = 1; i <= pages; i++) {
-          if (i > 1 || index > 0) {
+        // Header
+        pdf.setFontSize(20);
+        pdf.setTextColor(30, 64, 175);
+        pdf.text(`Protokoll ${index + 1}: ${pdfData.customerName}`, margin, currentY);
+
+        currentY += 12;
+        pdf.setFontSize(10);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(`Datum: ${pdfData.scheduledDate}`, margin, currentY);
+
+        currentY += 10;
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, currentY, pageWidth - margin, currentY);
+        currentY += 10;
+
+        // Customer Info
+        pdf.setFontSize(12);
+        pdf.setTextColor(30, 64, 175);
+        pdf.text('Kundeninformation', margin, currentY);
+        currentY += 8;
+
+        pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 0);
+
+        const customerInfo = [
+          { label: 'Kunde:', value: pdfData.customerName },
+          { label: 'Bereich:', value: pdfData.areaName },
+          { label: 'Termin:', value: pdfData.scheduledDate },
+          { label: 'Status:', value: pdfData.status },
+          { label: 'Arbeiter:', value: pdfData.workerName },
+        ];
+
+        customerInfo.forEach((info) => {
+          pdf.setFont(undefined, 'bold');
+          pdf.text(info.label, margin, currentY);
+          pdf.setFont(undefined, 'normal');
+          pdf.text(info.value, margin + 40, currentY);
+          currentY += 7;
+        });
+
+        currentY += 10;
+
+        // Plan Info
+        pdf.setFontSize(12);
+        pdf.setTextColor(30, 64, 175);
+        pdf.text('Reinigungsplan', margin, currentY);
+        currentY += 8;
+
+        pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont(undefined, 'bold');
+        pdf.text('Plan:', margin, currentY);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(pdfData.planName, margin + 40, currentY);
+        currentY += 7;
+
+        if (pdfData.planDescription) {
+          pdf.setFont(undefined, 'bold');
+          pdf.text('Beschreibung:', margin, currentY);
+          currentY += 7;
+          pdf.setFont(undefined, 'normal');
+
+          const splitDescription = pdf.splitTextToSize(pdfData.planDescription, pageWidth - margin - 30);
+          splitDescription.forEach((line) => {
+            pdf.text(line, margin + 10, currentY);
+            currentY += 5;
+          });
+        }
+
+        currentY += 10;
+
+        // Steps
+        pdf.setFontSize(12);
+        pdf.setTextColor(30, 64, 175);
+        pdf.text('Reinigungsschritte', margin, currentY);
+        currentY += 10;
+
+        pdf.setFontSize(9);
+
+        pdfData.steps.forEach((step, stepIndex) => {
+          // Check if we need a new page
+          if (currentY > pageHeight - 40) {
             pdf.addPage();
+            currentY = margin;
           }
-          // Copy page content (simplified - in real implementation you'd need proper page copying)
-          pdf.setPage(pdf.getNumberOfPages());
+
+          // Step Header
+          pdf.setFont(undefined, 'bold');
+          pdf.setTextColor(30, 64, 175);
+          pdf.text(`${stepIndex + 1}. ${step.step_name}`, margin, currentY);
+          currentY += 6;
+
+          // Step Details
+          pdf.setFont(undefined, 'normal');
+          pdf.setTextColor(80, 80, 80);
+
+          const stepDetails = [];
+          if (step.cleaning_agent && step.cleaning_agent !== 'none') {
+            stepDetails.push(`Mittel: ${step.cleaning_agent}`);
+          }
+          if (step.dwell_time_minutes > 0) {
+            stepDetails.push(`Einwirkzeit: ${step.dwell_time_minutes} min`);
+          }
+          if (step.completed) {
+            stepDetails.push('✓ Erledigt');
+          }
+
+          stepDetails.forEach((detail) => {
+            pdf.text(`• ${detail}`, margin + 5, currentY);
+            currentY += 5;
+          });
+
+          if (step.worker_notes) {
+            const splitNotes = pdf.splitTextToSize(`Notizen: ${step.worker_notes}`, pageWidth - margin - 10);
+            splitNotes.forEach((line) => {
+              pdf.text(line, margin + 5, currentY);
+              currentY += 5;
+            });
+          }
+
+          currentY += 5;
+        });
+
+        // Signature
+        if (pdfData.signature) {
+          currentY += 10;
+
+          // Check if we need a new page for signature
+          if (currentY > pageHeight - 60) {
+            pdf.addPage();
+            currentY = margin;
+          }
+
+          pdf.setDrawColor(200, 200, 200);
+          pdf.line(margin, currentY, pageWidth - margin, currentY);
+          currentY += 10;
+
+          pdf.setFontSize(12);
+          pdf.setTextColor(30, 64, 175);
+          pdf.text('Unterschrift', margin, currentY);
+          currentY += 15;
+
+          // Add signature image
+          try {
+            pdf.addImage(pdfData.signature, 'PNG', margin, currentY, 80, 40);
+            currentY += 45;
+          } catch (error) {
+            console.warn('Fehler beim Hinzufügen der Unterschrift:', error);
+          }
+
+          if (pdfData.completedAt) {
+            pdf.setFontSize(9);
+            pdf.setTextColor(100, 100, 100);
+            pdf.text(
+              `Unterschrieben am: ${new Date(pdfData.completedAt).toLocaleDateString('de-DE')}`,
+              margin,
+              currentY
+            );
+          }
         }
       }
 
@@ -240,9 +414,6 @@ function Protocols() {
       </div>
 
       <div className="protocols-content">
-        <div className="debug-info" style={{padding: '10px', background: '#f0f0f0', margin: '10px 0', fontSize: '12px'}}>
-          Debug: {protocols.length} Protokolle geladen, {filteredProtocols.length} nach Filter
-        </div>
         {Object.keys(protocolsByDate).length === 0 ? (
           <div className="empty-state">
             <FileText size={48} />
