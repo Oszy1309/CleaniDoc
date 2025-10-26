@@ -154,62 +154,115 @@ export const generateCleaningLogPDF = (logData, filename) => {
 
   yPosition += 10;
 
-  // ===== STEPS =====
+  // ===== STEPS TABLE =====
   pdf.setFontSize(14);
   pdf.setTextColor(30, 64, 175);
   pdf.text('Reinigungsschritte', margin, yPosition);
 
   yPosition += 10;
-  pdf.setFontSize(9);
+
+  // Table headers
+  const tableStartY = yPosition;
+  const colWidths = {
+    step: 40,
+    agent: 35,
+    time: 20,
+    status: 20,
+    notes: contentWidth - 115
+  };
+
+  let currentX = margin;
+
+  // Header row
+  pdf.setFontSize(7);
+  pdf.setFont(undefined, 'bold');
+  pdf.setTextColor(30, 64, 175);
+
+  // Draw header background
+  pdf.setFillColor(240, 248, 255);
+  pdf.rect(margin, yPosition - 1, contentWidth, 6, 'F');
+
+  // Header text
+  pdf.text('Schritt', currentX + 2, yPosition + 3);
+  currentX += colWidths.step;
+  pdf.text('Mittel', currentX + 2, yPosition + 3);
+  currentX += colWidths.agent;
+  pdf.text('Zeit', currentX + 2, yPosition + 3);
+  currentX += colWidths.time;
+  pdf.text('Status', currentX + 2, yPosition + 3);
+  currentX += colWidths.status;
+  pdf.text('Notizen', currentX + 2, yPosition + 3);
+
+  yPosition += 8;
+
+  // Table content
+  pdf.setFont(undefined, 'normal');
+  pdf.setFontSize(6);
 
   logData.steps.forEach((step, index) => {
-    // Step Header
-    pdf.setFont(undefined, 'bold');
-    pdf.setTextColor(30, 64, 175);
-    pdf.text(`${index + 1}. ${step.step_name}`, margin, yPosition);
-    yPosition += 6;
-
-    // Step Details
-    pdf.setFont(undefined, 'normal');
-    pdf.setTextColor(80, 80, 80);
-
-    const stepDetails = [];
-    if (step.cleaning_agent && step.cleaning_agent !== 'none') {
-      stepDetails.push(`Mittel: ${step.cleaning_agent}`);
-    }
-    if (step.dwell_time_minutes > 0) {
-      stepDetails.push(`Einwirkzeit: ${step.dwell_time_minutes} min`);
-    }
-    if (step.completed) {
-      stepDetails.push(`✓ Erledigt`);
-    }
-
-    stepDetails.forEach((detail) => {
-      pdf.text(`• ${detail}`, margin + 5, yPosition);
-      yPosition += 5;
-    });
-
-    if (step.worker_notes) {
-      const splitNotes = pdf.splitTextToSize(
-        `Notizen: ${step.worker_notes}`,
-        contentWidth - 10
-      );
-      splitNotes.forEach((line) => {
-        pdf.text(line, margin + 5, yPosition);
-        yPosition += 5;
-      });
-    }
-
-    yPosition += 5;
-
-    // Page Break if needed
-    if (yPosition > pageHeight - 40) {
+    // Check if we need a new page (reserve 60mm for signature)
+    if (yPosition > pageHeight - 60) {
       pdf.addPage();
       yPosition = margin;
     }
+
+    currentX = margin;
+    const rowHeight = 6;
+
+    // Row background (alternating)
+    if (index % 2 === 0) {
+      pdf.setFillColor(248, 249, 250);
+      pdf.rect(margin, yPosition - 1, contentWidth, rowHeight, 'F');
+    }
+
+    pdf.setTextColor(0, 0, 0);
+
+    // Step name (truncated if too long)
+    const stepName = step.step_name.length > 25 ? step.step_name.substring(0, 22) + '...' : step.step_name;
+    pdf.text(stepName, currentX + 2, yPosition + 3);
+    currentX += colWidths.step;
+
+    // Agent
+    const agent = step.cleaning_agent && step.cleaning_agent !== 'none' ? step.cleaning_agent : '-';
+    const agentText = agent.length > 20 ? agent.substring(0, 17) + '...' : agent;
+    pdf.text(agentText, currentX + 2, yPosition + 3);
+    currentX += colWidths.agent;
+
+    // Time
+    const timeText = step.dwell_time_minutes > 0 ? `${step.dwell_time_minutes}min` : '-';
+    pdf.text(timeText, currentX + 2, yPosition + 3);
+    currentX += colWidths.time;
+
+    // Status
+    pdf.setTextColor(step.completed ? [0, 150, 0] : [150, 150, 150]);
+    pdf.text(step.completed ? '✓' : '○', currentX + 2, yPosition + 3);
+    pdf.setTextColor(0, 0, 0);
+    currentX += colWidths.status;
+
+    // Notes (truncated if too long)
+    if (step.worker_notes && step.worker_notes.trim()) {
+      const notes = step.worker_notes.length > 40 ? step.worker_notes.substring(0, 37) + '...' : step.worker_notes;
+      pdf.text(notes, currentX + 2, yPosition + 3);
+    }
+
+    yPosition += rowHeight;
   });
 
-  yPosition += 10;
+  // Table border
+  pdf.setDrawColor(200, 200, 200);
+  pdf.rect(margin, tableStartY - 1, contentWidth, yPosition - tableStartY + 1);
+
+  // Column separators
+  currentX = margin + colWidths.step;
+  pdf.line(currentX, tableStartY - 1, currentX, yPosition);
+  currentX += colWidths.agent;
+  pdf.line(currentX, tableStartY - 1, currentX, yPosition);
+  currentX += colWidths.time;
+  pdf.line(currentX, tableStartY - 1, currentX, yPosition);
+  currentX += colWidths.status;
+  pdf.line(currentX, tableStartY - 1, currentX, yPosition);
+
+  yPosition += 5;
 
   // ===== SIGNATURE =====
   if (logData.signature) {
