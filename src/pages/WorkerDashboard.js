@@ -172,40 +172,6 @@ function WorkerDashboard() {
           )}
         </section>
 
-        {/* Verfügbare Aufgaben */}
-        {nextLogs.length > 0 && (
-          <section className="logs-section available-logs">
-            <div className="section-header">
-              <h2>Verfügbare Aufgaben (heute)</h2>
-              <span className="badge">{nextLogs.length}</span>
-            </div>
-
-            <div className="logs-grid">
-              {nextLogs.map((log) => (
-                <div key={log.id} className="log-card available">
-                  <div className="log-card-header">
-                    <h3>{log.customers?.name}</h3>
-                    <span className="status-badge available">
-                      📋 Verfügbar
-                    </span>
-                  </div>
-                  <p className="area">{log.areas?.name}</p>
-                  <p className="plan">{log.cleaning_plans?.name}</p>
-                  <p className="date">{new Date(log.scheduled_date).toLocaleDateString('de-DE')}</p>
-                  <button
-                    className="btn-claim-task"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleClaimTask(log.id);
-                    }}
-                  >
-                    Aufgabe übernehmen
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );
