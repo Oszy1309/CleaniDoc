@@ -234,7 +234,11 @@ export const generateCleaningLogPDF = (logData, filename) => {
     currentX += colWidths.time;
 
     // Status
-    pdf.setTextColor(step.completed ? [0, 150, 0] : [150, 150, 150]);
+    if (step.completed) {
+      pdf.setTextColor(0, 150, 0);
+    } else {
+      pdf.setTextColor(150, 150, 150);
+    }
     pdf.text(step.completed ? '✓' : '○', currentX + 2, yPosition + 3);
     pdf.setTextColor(0, 0, 0);
     currentX += colWidths.status;
