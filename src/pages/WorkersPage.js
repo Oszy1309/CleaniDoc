@@ -56,7 +56,7 @@ function WorkersPage() {
 
   const handleSaveWorker = async (workerData) => {
     try {
-      const { customers, user_id, ...workerInfo } = workerData;
+      const { customers, user_id, needsEmailConfirmation, ...workerInfo } = workerData;
 
       if (editingWorker) {
         // Update Worker
@@ -121,7 +121,13 @@ function WorkersPage() {
       setEditingWorker(null);
       setShowModal(false);
       fetchWorkers();
-      alert('Arbeiter erfolgreich ' + (editingWorker ? 'aktualisiert' : 'erstellt') + '!');
+
+      const successMessage = 'Arbeiter erfolgreich ' + (editingWorker ? 'aktualisiert' : 'erstellt') + '!';
+      if (needsEmailConfirmation && !editingWorker) {
+        alert(successMessage + '\n\nHINWEIS: Der Arbeiter muss seine Email-Adresse bestätigen bevor er sich anmelden kann.');
+      } else {
+        alert(successMessage);
+      }
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
       alert('Fehler: ' + error.message);

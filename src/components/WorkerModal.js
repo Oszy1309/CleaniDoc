@@ -92,10 +92,22 @@ function WorkerModal({ onClose, onSave, existingWorker }) {
           password: formData.password,
         });
 
-        if (error) throw error;
+        if (error) {
+          // Prüfe ob Email bereits existiert
+          if (error.message.includes('already exists') || error.message.includes('already registered')) {
+            throw new Error('Ein Benutzer mit dieser Email-Adresse existiert bereits. Bitte verwenden Sie eine andere Email-Adresse.');
+          }
+          throw error;
+        }
 
         if (!data.user?.id) {
           throw new Error('Benutzer-Account wurde nicht korrekt erstellt. Bitte versuchen Sie es erneut.');
+        }
+
+        // Warnung über Email-Bestätigung
+        const needsConfirmation = !data.session;
+        if (needsConfirmation) {
+          alert('WICHTIG: Email-Bestätigung erforderlich!\n\nDer Arbeiter wurde erstellt, aber muss seine Email-Adresse bestätigen bevor er sich anmelden kann. Prüfen Sie die Supabase-Einstellungen um Email-Bestätigung zu deaktivieren.');
         }
 
         const { password, ...workerData } = formData;
@@ -103,6 +115,7 @@ function WorkerModal({ onClose, onSave, existingWorker }) {
           ...workerData,
           user_id: data.user.id,
           customers: selectedCustomers,
+          needsEmailConfirmation: needsConfirmation,
         });
       } catch (error) {
         console.error('Auth Error:', error);
