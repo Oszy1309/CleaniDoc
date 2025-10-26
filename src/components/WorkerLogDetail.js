@@ -134,8 +134,26 @@ function WorkerLogDetail({ logId, onBack }) {
     try {
       setSaving(true);
 
-      // Erst die Steps speichern
-      await handleSaveSteps();
+      // Markiere alle Steps als completed vor der Unterschrift
+      const updatedSteps = logSteps.map(step => ({
+        ...step,
+        completed: true
+      }));
+      setLogSteps(updatedSteps);
+
+      // Speichere alle Steps als completed
+      for (const step of updatedSteps) {
+        const { error } = await supabase
+          .from('cleaning_log_steps')
+          .update({
+            completed: true,
+            completed_at: new Date().toISOString(),
+            worker_notes: step.worker_notes,
+          })
+          .eq('id', step.id);
+
+        if (error) throw error;
+      }
 
       // Dann die Unterschrift speichern und als completed markieren
       const { error } = await supabase
@@ -151,7 +169,6 @@ function WorkerLogDetail({ logId, onBack }) {
 
       alert('Protokoll erfolgreich abgeschlossen und unterzeichnet!');
       setShowSignature(false);
-      // Keine fetchLogDetails() mehr nötig - Status bleibt erhalten
     } catch (error) {
       console.error('Fehler beim Speichern der Unterschrift:', error);
       alert('Fehler: ' + error.message);
