@@ -48,8 +48,8 @@ function Protocols() {
           workers:assigned_worker_id(id, name),
           cleaning_log_steps(*)
         `)
-        .eq('status', 'completed')
-        .order('completed_at', { ascending: false });
+        .in('status', ['completed', 'in_progress'])
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setProtocols(data || []);
@@ -230,7 +230,7 @@ function Protocols() {
         {Object.keys(protocolsByDate).length === 0 ? (
           <div className="empty-state">
             <FileText size={48} />
-            <p>Keine abgeschlossenen Protokolle gefunden</p>
+            <p>Keine Protokolle gefunden</p>
           </div>
         ) : (
           Object.keys(protocolsByDate)
@@ -273,6 +273,11 @@ function Protocols() {
                           <span className="steps-completed">
                             {protocol.cleaning_log_steps?.filter(s => s.completed).length || 0}/
                             {protocol.cleaning_log_steps?.length || 0} Schritte
+                          </span>
+                          <span className={`status-badge ${protocol.status}`}>
+                            {protocol.status === 'completed' ? '✓ Abgeschlossen' :
+                             protocol.status === 'in_progress' ? '⏳ In Bearbeitung' :
+                             '📋 Offen'}
                           </span>
                           {protocol.signature && (
                             <span className="signature-badge">✍️ Unterschrieben</span>
