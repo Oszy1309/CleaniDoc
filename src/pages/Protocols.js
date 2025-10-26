@@ -7,7 +7,7 @@ import './Protocols.css';
 function Protocols() {
   const [protocols, setProtocols] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const [customerFilter, setCustomerFilter] = useState('');
   const [customers, setCustomers] = useState([]);
   const [filteredProtocols, setFilteredProtocols] = useState([]);
@@ -45,14 +45,27 @@ function Protocols() {
           customers:customer_id(id, name),
           areas:area_id(id, name),
           cleaning_plans:cleaning_plan_id(id, name, description),
-          workers:assigned_worker_id(id, name),
           cleaning_log_steps(*)
         `)
-        .in('status', ['completed', 'in_progress'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProtocols(data || []);
+
+      // Hole Worker-Informationen separat für jedes Log
+      const protocolsWithWorkers = await Promise.all((data || []).map(async (protocol) => {
+        if (protocol.assigned_worker_id) {
+          const { data: workerData } = await supabase
+            .from('workers')
+            .select('id, name')
+            .eq('id', protocol.assigned_worker_id)
+            .single();
+
+          return { ...protocol, workers: workerData };
+        }
+        return protocol;
+      }));
+
+      setProtocols(protocolsWithWorkers);
     } catch (error) {
       console.error('Fehler beim Laden der Protokolle:', error);
     } finally {
@@ -227,10 +240,15 @@ function Protocols() {
       </div>
 
       <div className="protocols-content">
+        <div className="debug-info" style={{padding: '10px', background: '#f0f0f0', margin: '10px 0', fontSize: '12px'}}>
+          Debug: {protocols.length} Protokolle geladen, {filteredProtocols.length} nach Filter
+        </div>
         {Object.keys(protocolsByDate).length === 0 ? (
           <div className="empty-state">
             <FileText size={48} />
             <p>Keine Protokolle gefunden</p>
+            {dateFilter && <p>Für Datum: {dateFilter}</p>}
+            {customerFilter && <p>Für Kunde: {customers.find(c => c.id == customerFilter)?.name}</p>}
           </div>
         ) : (
           Object.keys(protocolsByDate)
