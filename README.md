@@ -2,123 +2,54 @@
 
 CleaniDoc ist eine umfassende Lösung zur Verwaltung von Reinigungsdiensten, bestehend aus einer Web-App für Administratoren und einer Mobile-App für Mitarbeiter.
 
-> 🚨 **Sehen Sie nur Quellcode im Browser?** → Lesen Sie [QUICKSTART.md](./QUICKSTART.md)
->
-> 📦 **Deployment auf Vessel/Vercel/Netlify?** → Lesen Sie [DEPLOYMENT.md](./DEPLOYMENT.md)
-
 ## 📦 Projektstruktur
 
 ```
 CleaniDoc/
-├── src/                    # Web-App (React)
-│   ├── components/         # Wiederverwendbare Komponenten
-│   ├── pages/              # Seiten/Routen
-│   └── styles/             # CSS-Dateien
-├── public/                 # Statische Dateien (Web)
-├── cleanidoc-mobile/       # Mobile-App (React Native/Expo)
+├── cleanidoc-webapp/       # 🌐 Web-App (React)
+│   ├── src/                # React-Komponenten
+│   ├── public/             # Statische Dateien
+│   ├── package.json
+│   └── README.md           # Web-App Dokumentation
+│
+├── cleanidoc-mobile/       # 📱 Mobile-App (React Native/Expo)
+│   ├── src/
+│   ├── package.json
+│   └── README.md           # Mobile-App Dokumentation
+│
+├── .gitignore
 └── README.md              # Diese Datei
 ```
 
-## 🚀 Quick Start - Web-App
+## 🚀 Quick Start
 
-### Voraussetzungen
-
-- Node.js (v18 oder höher)
-- npm oder yarn
-- Supabase-Account mit konfiguriertem Projekt
-
-### Installation
-
-1. **Repository klonen**
-   ```bash
-   git clone <repository-url>
-   cd CleaniDoc
-   ```
-
-2. **Dependencies installieren**
-   ```bash
-   npm install
-   ```
-
-3. **Umgebungsvariablen konfigurieren**
-
-   Erstellen Sie eine `.env` Datei im Projektverzeichnis:
-   ```bash
-   cp .env.example .env
-   ```
-
-   Tragen Sie Ihre Supabase-Credentials ein:
-   ```env
-   REACT_APP_SUPABASE_URL=https://your-project.supabase.co
-   REACT_APP_SUPABASE_ANON_KEY=your-anon-key-here
-   ```
-
-   > **Wichtig:** Diese Werte finden Sie in Ihrem [Supabase Dashboard](https://app.supabase.com) unter Settings → API
-
-4. **Entwicklungsserver starten**
-   ```bash
-   npm start
-   ```
-
-   Die App öffnet sich automatisch unter [http://localhost:3000](http://localhost:3000)
-
-### Production Build
+### Web-App (Admin)
 
 ```bash
-npm run build
+cd cleanidoc-webapp
+npm install
+cp .env.example .env
+# .env bearbeiten und Supabase-Credentials eintragen
+npm start
 ```
 
-Die optimierten Dateien befinden sich im `build/` Ordner.
+📖 Siehe [cleanidoc-webapp/README.md](./cleanidoc-webapp/README.md) für Details
 
-## 🔧 Deployment
+### Mobile-App (Mitarbeiter)
 
-### Vessel (oder andere Plattformen)
+```bash
+cd cleanidoc-mobile
+npm install
+cp .env.example .env
+# .env bearbeiten und Supabase-Credentials eintragen
+npm start
+```
 
-1. **Umgebungsvariablen setzen**
-
-   Konfigurieren Sie in Ihrer Deployment-Plattform (Vessel, Vercel, Netlify, etc.) die folgenden Umgebungsvariablen:
-   - `REACT_APP_SUPABASE_URL`
-   - `REACT_APP_SUPABASE_ANON_KEY`
-
-2. **Build-Befehl**: `npm run build`
-3. **Output-Verzeichnis**: `build`
-4. **Install-Befehl**: `npm install`
-
-### Troubleshooting: Blank Page
-
-Wenn Sie eine leere Seite sehen:
-
-1. **Prüfen Sie die Browser-Konsole** (F12 → Console)
-   - Suchen Sie nach Fehlermeldungen
-
-2. **Umgebungsvariablen überprüfen**
-   - Stellen Sie sicher, dass `.env` existiert und korrekt konfiguriert ist
-   - Bei Vessel/Cloud-Deployments: Prüfen Sie die Umgebungsvariablen in Ihrem Dashboard
-
-3. **Cache leeren**
-   ```bash
-   # Dependencies neu installieren
-   rm -rf node_modules package-lock.json
-   npm install
-
-   # Build-Cache leeren
-   rm -rf build
-   npm run build
-   ```
-
-4. **Supabase-Verbindung testen**
-   - Öffnen Sie die Browser-Konsole
-   - Sie sollten eine klare Fehlermeldung sehen, wenn die Credentials fehlen
-
-## 📱 Mobile-App
-
-Die Mobile-App für Mitarbeiter finden Sie im `cleanidoc-mobile/` Verzeichnis.
-
-Siehe [cleanidoc-mobile/README.md](./cleanidoc-mobile/README.md) für Details.
+📖 Siehe [cleanidoc-mobile/README.md](./cleanidoc-mobile/README.md) für Details
 
 ## ✨ Features
 
-### Web-App (Admin)
+### 🌐 Web-App (Admin)
 - ✅ Dashboard mit Übersicht
 - ✅ Kundenverwaltung
 - ✅ Reinigungspläne erstellen und verwalten
@@ -126,24 +57,38 @@ Siehe [cleanidoc-mobile/README.md](./cleanidoc-mobile/README.md) für Details.
 - ✅ Tägliche Berichte
 - ✅ Protokollarchiv
 
-### Mobile-App (Mitarbeiter)
+### 📱 Mobile-App (Mitarbeiter)
 - ✅ Aufgabenliste
 - ✅ Schritt-für-Schritt Anleitungen
 - ✅ Digitale Unterschrift
 - ✅ Fortschritts-Tracking
 
+## 🏗️ Tech Stack
+
+### Web-App
+- React 18
+- React Router v6
+- Supabase
+- Create React App
+
+### Mobile-App
+- React Native 19.1
+- Expo ~54
+- React Navigation v7
+- Supabase
+
 ## 🔐 Authentifizierung
 
-Das System verwendet Supabase Authentication:
+Beide Apps nutzen **Supabase Authentication**:
 
-- **Admin-Login**: Über Web-App unter `/`
+- **Admin-Login**: Web-App unter `/`
 - **Mitarbeiter-Login**:
   - Web: `/worker-login`
   - Mobile: Native Login-Screen
 
-## 📊 Datenbank
+## 🗄️ Datenbank
 
-Die App nutzt Supabase als Backend mit folgenden Haupttabellen:
+Gemeinsame Supabase-Datenbank für beide Apps:
 
 - `customers` - Kundendaten
 - `workers` - Mitarbeiter
@@ -152,14 +97,40 @@ Die App nutzt Supabase als Backend mit folgenden Haupttabellen:
 - `cleaning_logs` - Reinigungsaufgaben
 - `cleaning_log_steps` - Arbeitsschritte
 
-## 🆘 Support
+## 🚀 Deployment
 
-Bei Problemen:
+### Web-App
+Unterstützte Plattformen:
+- Vessel
+- Vercel
+- Netlify
+- Docker
 
-1. Prüfen Sie die Browser-Konsole auf Fehlermeldungen
-2. Stellen Sie sicher, dass alle Umgebungsvariablen korrekt gesetzt sind
-3. Prüfen Sie die Supabase-Verbindung
-4. Erstellen Sie ein [GitHub Issue](../../issues)
+→ Siehe [cleanidoc-webapp/DEPLOYMENT.md](./cleanidoc-webapp/DEPLOYMENT.md)
+
+### Mobile-App
+Unterstützte Plattformen:
+- Expo Application Services (EAS)
+- Google Play Store
+- Apple App Store
+
+→ Siehe [cleanidoc-mobile/README.md](./cleanidoc-mobile/README.md)
+
+## 🆘 Troubleshooting
+
+### Web-App zeigt nur Quellcode
+→ Siehe [cleanidoc-webapp/QUICKSTART.md](./cleanidoc-webapp/QUICKSTART.md)
+
+### Blank Page nach Deployment
+1. Prüfen Sie Browser-Konsole (F12)
+2. Stellen Sie sicher, dass Umgebungsvariablen gesetzt sind
+3. Prüfen Sie Deployment-Logs
+
+### Mobile-App startet nicht
+```bash
+cd cleanidoc-mobile
+npx expo start -c  # Cache löschen
+```
 
 ## 📄 Lizenz
 

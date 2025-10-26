@@ -9,7 +9,7 @@ Sie sehen im Browser rohen JavaScript-Code statt der Web-App.
 
 #### Schritt 1: Dependencies installieren
 ```bash
-cd /home/user/CleaniDoc
+cd cleanidoc-webapp
 npm install
 ```
 ⏱️ Dauert ca. 2-3 Minuten

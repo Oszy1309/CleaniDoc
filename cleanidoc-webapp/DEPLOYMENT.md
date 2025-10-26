@@ -155,7 +155,7 @@ vercel --prod
 npm install -g netlify-cli
 
 # In Projekt-Verzeichnis
-cd /home/user/CleaniDoc
+cd cleanidoc-webapp
 
 # Deployment initiieren
 netlify deploy --prod
