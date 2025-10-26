@@ -313,57 +313,114 @@ function Protocols() {
 
         currentY += 10;
 
-        // Steps
+        // Steps Table
         pdf.setFontSize(12);
         pdf.setTextColor(30, 64, 175);
         pdf.text('Reinigungsschritte', margin, currentY);
         currentY += 10;
 
-        pdf.setFontSize(9);
+        // Table setup
+        const tableStartY = currentY;
+        const colWidths = {
+          step: 40,
+          agent: 35,
+          time: 20,
+          status: 20,
+          notes: pageWidth - margin - margin - 115
+        };
+
+        let tableX = margin;
+
+        // Header row
+        pdf.setFontSize(7);
+        pdf.setFont(undefined, 'bold');
+        pdf.setTextColor(30, 64, 175);
+
+        // Draw header background
+        pdf.setFillColor(240, 248, 255);
+        pdf.rect(margin, currentY - 1, pageWidth - margin - margin, 6, 'F');
+
+        // Header text
+        pdf.text('Schritt', tableX + 2, currentY + 3);
+        tableX += colWidths.step;
+        pdf.text('Mittel', tableX + 2, currentY + 3);
+        tableX += colWidths.agent;
+        pdf.text('Einwirkzeit', tableX + 2, currentY + 3);
+        tableX += colWidths.time;
+        pdf.text('Status', tableX + 2, currentY + 3);
+        tableX += colWidths.status;
+        pdf.text('Notizen', tableX + 2, currentY + 3);
+
+        currentY += 8;
+
+        // Table content
+        pdf.setFont(undefined, 'normal');
+        pdf.setFontSize(6);
 
         pdfData.steps.forEach((step, stepIndex) => {
-          // Check if we need a new page
-          if (currentY > pageHeight - 40) {
+          // Check if we need a new page (reserve 60mm for signature)
+          if (currentY > pageHeight - 60) {
             pdf.addPage();
             currentY = margin;
           }
 
-          // Step Header
-          pdf.setFont(undefined, 'bold');
-          pdf.setTextColor(30, 64, 175);
-          pdf.text(`${stepIndex + 1}. ${step.step_name}`, margin, currentY);
-          currentY += 6;
+          tableX = margin;
+          const rowHeight = 6;
 
-          // Step Details
-          pdf.setFont(undefined, 'normal');
-          pdf.setTextColor(80, 80, 80);
-
-          const stepDetails = [];
-          if (step.cleaning_agent && step.cleaning_agent !== 'none') {
-            stepDetails.push(`Mittel: ${step.cleaning_agent}`);
-          }
-          if (step.dwell_time_minutes > 0) {
-            stepDetails.push(`Einwirkzeit: ${step.dwell_time_minutes} min`);
-          }
-          if (step.completed) {
-            stepDetails.push('✓ Erledigt');
+          // Row background (alternating)
+          if (stepIndex % 2 === 0) {
+            pdf.setFillColor(248, 249, 250);
+            pdf.rect(margin, currentY - 1, pageWidth - margin - margin, rowHeight, 'F');
           }
 
-          stepDetails.forEach((detail) => {
-            pdf.text(`• ${detail}`, margin + 5, currentY);
-            currentY += 5;
-          });
+          pdf.setTextColor(0, 0, 0);
 
-          if (step.worker_notes) {
-            const splitNotes = pdf.splitTextToSize(`Notizen: ${step.worker_notes}`, pageWidth - margin - 10);
-            splitNotes.forEach((line) => {
-              pdf.text(line, margin + 5, currentY);
-              currentY += 5;
-            });
+          // Step name (truncated if too long)
+          const stepName = step.step_name.length > 25 ? step.step_name.substring(0, 22) + '...' : step.step_name;
+          pdf.text(stepName, tableX + 2, currentY + 3);
+          tableX += colWidths.step;
+
+          // Agent
+          const agent = step.cleaning_agent && step.cleaning_agent !== 'none' ? step.cleaning_agent : '-';
+          const agentText = agent.length > 20 ? agent.substring(0, 17) + '...' : agent;
+          pdf.text(agentText, tableX + 2, currentY + 3);
+          tableX += colWidths.agent;
+
+          // Time
+          const timeText = step.dwell_time_minutes > 0 ? `${step.dwell_time_minutes}min` : '-';
+          pdf.text(timeText, tableX + 2, currentY + 3);
+          tableX += colWidths.time;
+
+          // Status
+          pdf.setTextColor(step.completed ? [0, 150, 0] : [150, 150, 150]);
+          pdf.text(step.completed ? '✓' : '○', tableX + 2, currentY + 3);
+          pdf.setTextColor(0, 0, 0);
+          tableX += colWidths.status;
+
+          // Notes (truncated if too long)
+          if (step.worker_notes && step.worker_notes.trim()) {
+            const notes = step.worker_notes.length > 40 ? step.worker_notes.substring(0, 37) + '...' : step.worker_notes;
+            pdf.text(notes, tableX + 2, currentY + 3);
           }
 
-          currentY += 5;
+          currentY += rowHeight;
         });
+
+        // Table border
+        pdf.setDrawColor(200, 200, 200);
+        pdf.rect(margin, tableStartY - 1, pageWidth - margin - margin, currentY - tableStartY + 1);
+
+        // Column separators
+        tableX = margin + colWidths.step;
+        pdf.line(tableX, tableStartY - 1, tableX, currentY);
+        tableX += colWidths.agent;
+        pdf.line(tableX, tableStartY - 1, tableX, currentY);
+        tableX += colWidths.time;
+        pdf.line(tableX, tableStartY - 1, tableX, currentY);
+        tableX += colWidths.status;
+        pdf.line(tableX, tableStartY - 1, tableX, currentY);
+
+        currentY += 5;
 
         // Signature
         if (pdfData.signature) {

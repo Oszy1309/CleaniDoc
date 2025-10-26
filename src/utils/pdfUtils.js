@@ -187,7 +187,7 @@ export const generateCleaningLogPDF = (logData, filename) => {
   currentX += colWidths.step;
   pdf.text('Mittel', currentX + 2, yPosition + 3);
   currentX += colWidths.agent;
-  pdf.text('Zeit', currentX + 2, yPosition + 3);
+  pdf.text('Einwirkzeit', currentX + 2, yPosition + 3);
   currentX += colWidths.time;
   pdf.text('Status', currentX + 2, yPosition + 3);
   currentX += colWidths.status;
