@@ -139,13 +139,37 @@ function Protocols() {
       const margin = 15;
       let yPosition = margin;
 
-      // Title Page
+      // Title Page Header
+      const titleStartY = yPosition;
+
+      // Left side - Title
       pdf.setFontSize(24);
       pdf.setTextColor(30, 64, 175);
       pdf.text('Tagesprotokoll-Zusammenfassung', margin, yPosition);
 
-      yPosition += 15;
+      // Right side - First customer info (if any protocols exist)
+      if (dailyProtocols.length > 0) {
+        const firstCustomer = dailyProtocols[0];
+        pdf.setFontSize(12);
+        pdf.setTextColor(30, 64, 175);
+        const customerText = firstCustomer.customers?.name || 'Kunde unbekannt';
+        const customerWidth = pdf.getTextWidth(customerText);
+        const customerHeaderX = pageWidth - margin - customerWidth;
+        pdf.text(customerText, customerHeaderX, yPosition);
+
+        yPosition += 8;
+        pdf.setFontSize(10);
+        pdf.setTextColor(100, 100, 100);
+        const areaText = `Mehrere Bereiche (${dailyProtocols.length} Protokolle)`;
+        const areaWidth = pdf.getTextWidth(areaText);
+        const areaHeaderX = pageWidth - margin - areaWidth;
+        pdf.text(areaText, areaHeaderX, yPosition);
+      }
+
+      // Left side - Date info
+      yPosition = titleStartY + 15;
       pdf.setFontSize(14);
+      pdf.setTextColor(100, 100, 100);
       pdf.text(`Datum: ${new Date(date).toLocaleDateString('de-DE')}`, margin, yPosition);
 
       yPosition += 10;
