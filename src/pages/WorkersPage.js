@@ -86,6 +86,11 @@ function WorkersPage() {
           if (assignError) throw assignError;
         }
       } else {
+        // Validiere user_id vor Worker-Erstellung
+        if (!user_id) {
+          throw new Error('Benutzer-Account konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
+        }
+
         // Insert Worker mit user_id
         const { data: newWorker, error: workerError } = await supabase
           .from('workers')
@@ -116,6 +121,7 @@ function WorkersPage() {
       setEditingWorker(null);
       setShowModal(false);
       fetchWorkers();
+      alert('Arbeiter erfolgreich ' + (editingWorker ? 'aktualisiert' : 'erstellt') + '!');
     } catch (error) {
       console.error('Fehler beim Speichern:', error);
       alert('Fehler: ' + error.message);

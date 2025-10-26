@@ -73,6 +73,17 @@ function WorkerModal({ onClose, onSave, existingWorker }) {
       return;
     }
 
+    // Validierung für neue Worker
+    if (!existingWorker && !formData.password) {
+      alert('Bitte gib ein Passwort für den neuen Arbeiter ein');
+      return;
+    }
+
+    if (!existingWorker && formData.password.length < 6) {
+      alert('Passwort muss mindestens 6 Zeichen lang sein');
+      return;
+    }
+
     // Wenn neuer Worker: Erstelle Auth-Account
     if (!existingWorker && formData.password) {
       try {
@@ -83,13 +94,18 @@ function WorkerModal({ onClose, onSave, existingWorker }) {
 
         if (error) throw error;
 
+        if (!data.user?.id) {
+          throw new Error('Benutzer-Account wurde nicht korrekt erstellt. Bitte versuchen Sie es erneut.');
+        }
+
         const { password, ...workerData } = formData;
         onSave({
           ...workerData,
-          user_id: data.user?.id,
+          user_id: data.user.id,
           customers: selectedCustomers,
         });
       } catch (error) {
+        console.error('Auth Error:', error);
         alert('Fehler beim Erstellen des Auth-Accounts: ' + error.message);
         return;
       }
