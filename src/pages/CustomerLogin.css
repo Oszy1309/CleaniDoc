@@ -120,6 +120,28 @@
 }
 
 /* Mobile Responsive */
+/* Forgot Password */
+.forgot-password {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: #667eea;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0.5rem;
+}
+
+.forgot-password-link:hover {
+  color: #5a67d8;
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .customer-login-container {
     padding: 0.5rem;

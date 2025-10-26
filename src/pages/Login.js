@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../App';
 import { LogIn, AlertCircle } from 'lucide-react';
+import PasswordReset from '../components/PasswordReset';
 import './Login.css';
 
 function Login({ setUser }) {
@@ -8,6 +9,7 @@ function Login({ setUser }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,6 +32,15 @@ function Login({ setUser }) {
       setLoading(false);
     }
   };
+
+  if (showPasswordReset) {
+    return (
+      <PasswordReset
+        onBack={() => setShowPasswordReset(false)}
+        userType="admin"
+      />
+    );
+  }
 
   return (
     <div className="login-page">
@@ -121,6 +132,17 @@ function Login({ setUser }) {
                 </>
               )}
             </button>
+
+            {/* Forgot Password Link */}
+            <div className="forgot-password">
+              <button
+                type="button"
+                onClick={() => setShowPasswordReset(true)}
+                className="forgot-password-link"
+              >
+                Passwort vergessen?
+              </button>
+            </div>
 
             {/* Divider */}
             <div className="login-divider">

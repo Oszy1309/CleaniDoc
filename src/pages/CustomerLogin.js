@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../App';
+import PasswordReset from '../components/PasswordReset';
 import './CustomerLogin.css';
 
 function CustomerLogin({ setUser }) {
@@ -9,6 +10,7 @@ function CustomerLogin({ setUser }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -57,6 +59,15 @@ function CustomerLogin({ setUser }) {
     }
   };
 
+  if (showPasswordReset) {
+    return (
+      <PasswordReset
+        onBack={() => setShowPasswordReset(false)}
+        userType="customer"
+      />
+    );
+  }
+
   return (
     <div className="customer-login-container">
       <div className="customer-login-card">
@@ -101,6 +112,16 @@ function CustomerLogin({ setUser }) {
           >
             {loading ? 'Anmelden...' : 'Anmelden'}
           </button>
+
+          <div className="forgot-password">
+            <button
+              type="button"
+              onClick={() => setShowPasswordReset(true)}
+              className="forgot-password-link"
+            >
+              Passwort vergessen?
+            </button>
+          </div>
         </form>
 
         <div className="login-links">
