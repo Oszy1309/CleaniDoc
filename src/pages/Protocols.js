@@ -199,23 +199,31 @@ function Protocols() {
         let currentY = margin;
 
         // Header
+        const startCurrentY = currentY;
+
+        // Left side - Protocol title
         pdf.setFontSize(20);
         pdf.setTextColor(30, 64, 175);
         pdf.text(`Protokoll ${index + 1}: ${pdfData.customerName}`, margin, currentY);
 
-        // Customer info in header (right side)
+        // Right side - Customer info
         pdf.setFontSize(12);
         pdf.setTextColor(30, 64, 175);
-        const customerHeaderX = pageWidth - margin - 60;
-        pdf.text(pdfData.customerName, customerHeaderX, currentY);
+        const customerText = pdfData.customerName || 'Kunde unbekannt';
+        const customerWidth = pdf.getTextWidth(customerText);
+        const customerHeaderX = pageWidth - margin - customerWidth;
+        pdf.text(customerText, customerHeaderX, currentY);
 
         currentY += 8;
         pdf.setFontSize(10);
         pdf.setTextColor(100, 100, 100);
-        pdf.text(pdfData.areaName, customerHeaderX, currentY);
+        const areaText = pdfData.areaName || 'Bereich unbekannt';
+        const areaWidth = pdf.getTextWidth(areaText);
+        const areaHeaderX = pageWidth - margin - areaWidth;
+        pdf.text(areaText, areaHeaderX, currentY);
 
-        // Reset position for left side date
-        currentY = margin + 12;
+        // Left side - Date
+        currentY = startCurrentY + 12;
         pdf.setFontSize(10);
         pdf.setTextColor(100, 100, 100);
         pdf.text(`Datum: ${pdfData.scheduledDate}`, margin, currentY);

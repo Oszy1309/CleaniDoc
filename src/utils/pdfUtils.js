@@ -59,23 +59,31 @@ export const generateCleaningLogPDF = (logData, filename) => {
   let yPosition = margin;
 
   // ===== HEADER =====
+  const startY = yPosition;
+
+  // Left side - Title
   pdf.setFontSize(24);
   pdf.setTextColor(30, 64, 175); // Navy
   pdf.text('Reinigungsprotokoll', margin, yPosition);
 
-  // Customer info in header (right side)
+  // Right side - Customer info
   pdf.setFontSize(12);
   pdf.setTextColor(30, 64, 175);
-  const customerHeaderX = pageWidth - margin - 60;
-  pdf.text(logData.customerName, customerHeaderX, yPosition);
+  const customerText = logData.customerName || 'Kunde unbekannt';
+  const customerWidth = pdf.getTextWidth(customerText);
+  const customerHeaderX = pageWidth - margin - customerWidth;
+  pdf.text(customerText, customerHeaderX, yPosition);
 
   yPosition += 8;
   pdf.setFontSize(10);
   pdf.setTextColor(100, 100, 100);
-  pdf.text(logData.areaName, customerHeaderX, yPosition);
+  const areaText = logData.areaName || 'Bereich unbekannt';
+  const areaWidth = pdf.getTextWidth(areaText);
+  const areaHeaderX = pageWidth - margin - areaWidth;
+  pdf.text(areaText, areaHeaderX, yPosition);
 
-  // Reset position for left side date
-  yPosition = margin + 15;
+  // Left side - Date
+  yPosition = startY + 15;
   pdf.setFontSize(10);
   pdf.setTextColor(100, 100, 100);
   pdf.text(`Datum: ${new Date().toLocaleDateString('de-DE')}`, margin, yPosition);
