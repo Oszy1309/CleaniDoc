@@ -20,6 +20,14 @@ import DailyReportPage from './pages/DailyReportPage';
 // Supabase Client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+// Validierung der Umgebungsvariablen
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Fehlende Supabase-Konfiguration!');
+  console.error('REACT_APP_SUPABASE_URL:', supabaseUrl);
+  console.error('REACT_APP_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'vorhanden' : 'fehlt');
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function App() {
@@ -30,6 +38,9 @@ function App() {
     // Check ob Benutzer bereits eingeloggt ist
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Fehler beim Laden der Session:', error);
       setLoading(false);
     });
 
@@ -45,6 +56,54 @@ function App() {
     await supabase.auth.signOut();
     setUser(null);
   };
+
+  // Prüfe ob Umgebungsvariablen fehlen
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        padding: '20px',
+        textAlign: 'center',
+        backgroundColor: '#f5f5f5'
+      }}>
+        <h1 style={{ color: '#d32f2f' }}>⚠️ Konfigurationsfehler</h1>
+        <p style={{ maxWidth: '600px', marginBottom: '20px' }}>
+          Die Supabase-Umgebungsvariablen sind nicht konfiguriert.
+        </p>
+        <div style={{
+          backgroundColor: '#fff',
+          padding: '20px',
+          borderRadius: '8px',
+          textAlign: 'left',
+          maxWidth: '600px'
+        }}>
+          <h3>So beheben Sie das Problem:</h3>
+          <ol>
+            <li>Erstellen Sie eine <code>.env</code> Datei im Projektverzeichnis</li>
+            <li>Kopieren Sie die Vorlage aus <code>.env.example</code></li>
+            <li>Tragen Sie Ihre Supabase-Credentials ein:
+              <pre style={{ backgroundColor: '#f5f5f5', padding: '10px', marginTop: '10px' }}>
+{`REACT_APP_SUPABASE_URL=https://your-project.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your-anon-key-here`}
+              </pre>
+            </li>
+            <li>Starten Sie den Entwicklungsserver neu</li>
+          </ol>
+          <p style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
+            Ihre Supabase-Credentials finden Sie im{' '}
+            <a href="https://app.supabase.com" target="_blank" rel="noopener noreferrer">
+              Supabase Dashboard
+            </a>{' '}
+            unter Settings → API
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="loading">Lädt...</div>;
