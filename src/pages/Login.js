@@ -127,10 +127,13 @@ function Login({ setUser }) {
               <span>oder</span>
             </div>
 
-            {/* Worker Login Link */}
+            {/* Other Login Links */}
             <div className="login-footer">
-              <p>Bist du ein Arbeiter?</p>
-              <a href="/worker-login">Hier anmelden</a>
+              <p>Andere Anmeldeoptionen:</p>
+              <div className="login-links">
+                <a href="/worker-login">Mitarbeiter Login</a>
+                <a href="/customer-login">Kunden Login</a>
+              </div>
             </div>
           </form>
         </div>

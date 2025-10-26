@@ -314,6 +314,26 @@
   text-decoration: underline;
 }
 
+.login-links {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.login-links a {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-medium-blue);
+  border-radius: var(--border-radius);
+  background: transparent;
+}
+
+.login-links a:hover {
+  background: var(--color-medium-blue);
+  color: white;
+  text-decoration: none;
+}
+
 /* Demo Info */
 .login-demo-info {
   text-align: center;

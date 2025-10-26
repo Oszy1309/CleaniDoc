@@ -48,6 +48,28 @@ body {
   transition: margin-left 0.3s ease;
 }
 
+/* Mobile responsive layout */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .app-main {
+    margin-left: 0;
+    height: calc(100vh - 60px); /* Adjust for mobile header */
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 12px;
+  }
+
+  .app-main {
+    height: calc(100vh - 50px);
+  }
+}
+
 .app-content {
   flex: 1;
   padding: var(--space-2xl);
