@@ -21,7 +21,7 @@ function WorkerLogDetail({ logId, onBack }) {
           *,
           customers:customer_id(id, name),
           areas:area_id(id, name),
-          cleaning_plans:cleaning_plan_id(id, name, description)
+          cleaning_plans:cleaning_plan_id(id, name, description, checklist)
         `)
         .eq('id', logId)
         .single();
@@ -29,6 +29,7 @@ function WorkerLogDetail({ logId, onBack }) {
       if (logError) throw logError;
       setLog(logData);
 
+      // Hole existing steps oder erstelle sie aus der Checkliste
       const { data: stepsData, error: stepsError } = await supabase
         .from('cleaning_log_steps')
         .select('*')
@@ -36,7 +37,45 @@ function WorkerLogDetail({ logId, onBack }) {
         .order('step_number', { ascending: true });
 
       if (stepsError) throw stepsError;
-      setLogSteps(stepsData || []);
+
+      // Falls keine Steps existieren, erstelle sie aus der Checkliste
+      if ((!stepsData || stepsData.length === 0) && logData.cleaning_plans?.checklist) {
+        const checklist = logData.cleaning_plans.checklist;
+        const newSteps = checklist.map((item, index) => ({
+          id: `temp_${index}`,
+          cleaning_log_id: logId,
+          step_number: index + 1,
+          step_name: item.step || item.name || `Schritt ${index + 1}`,
+          cleaning_agent: item.agent || item.cleaning_agent || '',
+          dwell_time_minutes: item.dwell_time || item.dwell_time_minutes || 0,
+          completed: false,
+          worker_notes: ''
+        }));
+
+        // Speichere die neuen Schritte in der Datenbank
+        try {
+          const { data: insertedSteps, error: insertError } = await supabase
+            .from('cleaning_log_steps')
+            .insert(newSteps.map(step => ({
+              cleaning_log_id: step.cleaning_log_id,
+              step_number: step.step_number,
+              step_name: step.step_name,
+              cleaning_agent: step.cleaning_agent,
+              dwell_time_minutes: step.dwell_time_minutes,
+              completed: step.completed,
+              worker_notes: step.worker_notes
+            })))
+            .select();
+
+          if (insertError) throw insertError;
+          setLogSteps(insertedSteps || []);
+        } catch (insertError) {
+          console.error('Fehler beim Erstellen der Schritte:', insertError);
+          setLogSteps(newSteps); // Verwende temporäre Schritte
+        }
+      } else {
+        setLogSteps(stepsData || []);
+      }
     } catch (error) {
       console.error('Fehler beim Laden des Logs:', error);
     } finally {

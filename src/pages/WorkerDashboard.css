@@ -159,6 +159,39 @@
   color: #92400e;
 }
 
+.status-badge.available {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+/* Button für Task übernehmen */
+.btn-claim-task {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.btn-claim-task:hover {
+  background: #45a049;
+}
+
+/* Verfügbare Aufgaben Styling */
+.log-card.available {
+  border-left: 4px solid #4caf50;
+}
+
+.log-card.available:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.2);
+}
+
 .log-card .area {
   margin: 0.5rem 0;
   color: #667eea;

@@ -31,42 +31,45 @@ function WorkerDashboard() {
       if (workerError) throw workerError;
       setWorker(workerData);
 
-      // Hole meine Logs (mir zugewiesen)
+      // Aktuelles Datum für Filterung
+      const today = new Date().toISOString().split('T')[0];
+
+      // Hole nur heutige Logs (mir zugewiesen oder unzugewiesen)
       const { data: myLogsData, error: myLogsError } = await supabase
         .from('cleaning_logs')
         .select(`
           *,
           customers:customer_id(id, name),
           areas:area_id(id, name),
-          cleaning_plans:cleaning_plan_id(id, name)
+          cleaning_plans:cleaning_plan_id(id, name, checklist)
         `)
         .eq('assigned_worker_id', workerData.id)
+        .gte('scheduled_date', today)
+        .lte('scheduled_date', today + 'T23:59:59')
+        .in('status', ['pending', 'in_progress'])
         .order('scheduled_date', { ascending: true });
 
       if (myLogsError) throw myLogsError;
       setMyLogs(myLogsData || []);
 
-      // Hole nächste Logs (für Kunden wo mein Log completed ist)
-      const completedLogCustomers = myLogsData
-        .filter(log => log.status === 'completed')
-        .map(log => log.customer_id);
+      // Hole verfügbare Logs (unzugewiesen, heute)
+      const { data: availableLogsData, error: availableLogsError } = await supabase
+        .from('cleaning_logs')
+        .select(`
+          *,
+          customers:customer_id(id, name),
+          areas:area_id(id, name),
+          cleaning_plans:cleaning_plan_id(id, name, checklist)
+        `)
+        .is('assigned_worker_id', null)
+        .gte('scheduled_date', today)
+        .lte('scheduled_date', today + 'T23:59:59')
+        .eq('status', 'pending')
+        .order('scheduled_date', { ascending: true });
 
-      if (completedLogCustomers.length > 0) {
-        const { data: nextLogsData, error: nextLogsError } = await supabase
-          .from('cleaning_logs')
-          .select(`
-            *,
-            customers:customer_id(id, name),
-            areas:area_id(id, name),
-            cleaning_plans:cleaning_plan_id(id, name)
-          `)
-          .in('customer_id', completedLogCustomers)
-          .eq('status', 'pending')
-          .order('scheduled_date', { ascending: true });
+      if (availableLogsError) throw availableLogsError;
+      setNextLogs(availableLogsData || []);
 
-        if (nextLogsError) throw nextLogsError;
-        setNextLogs(nextLogsData || []);
-      }
     } catch (error) {
       console.error('Fehler beim Laden:', error);
     } finally {
@@ -84,6 +87,26 @@ function WorkerDashboard() {
       navigate('/worker-login');
     } catch (error) {
       console.error('Logout Error:', error);
+    }
+  };
+
+  const handleClaimTask = async (logId) => {
+    try {
+      const { error } = await supabase
+        .from('cleaning_logs')
+        .update({
+          assigned_worker_id: worker.id,
+          status: 'in_progress'
+        })
+        .eq('id', logId);
+
+      if (error) throw error;
+
+      // Aktualisiere die Listen
+      await fetchWorkerAndLogs();
+    } catch (error) {
+      console.error('Fehler beim Übernehmen der Aufgabe:', error);
+      alert('Fehler beim Übernehmen der Aufgabe: ' + error.message);
     }
   };
 
@@ -151,27 +174,35 @@ function WorkerDashboard() {
           )}
         </section>
 
-        {/* Nächste Logs */}
+        {/* Verfügbare Aufgaben */}
         {nextLogs.length > 0 && (
-          <section className="logs-section next-logs">
+          <section className="logs-section available-logs">
             <div className="section-header">
-              <h2>Nächste Aufgaben im gleichen Auftrag</h2>
+              <h2>Verfügbare Aufgaben (heute)</h2>
               <span className="badge">{nextLogs.length}</span>
             </div>
 
             <div className="logs-grid">
               {nextLogs.map((log) => (
-                <div key={log.id} className="log-card next">
+                <div key={log.id} className="log-card available">
                   <div className="log-card-header">
                     <h3>{log.customers?.name}</h3>
-                    <span className="status-badge pending">
-                      ⏸ Ausstehend
+                    <span className="status-badge available">
+                      📋 Verfügbar
                     </span>
                   </div>
                   <p className="area">{log.areas?.name}</p>
                   <p className="plan">{log.cleaning_plans?.name}</p>
-                  <p className="date">{log.scheduled_date}</p>
-                  <p className="hint">Warte auf anderen Arbeiter</p>
+                  <p className="date">{new Date(log.scheduled_date).toLocaleDateString('de-DE')}</p>
+                  <button
+                    className="btn-claim-task"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClaimTask(log.id);
+                    }}
+                  >
+                    Aufgabe übernehmen
+                  </button>
                 </div>
               ))}
             </div>
