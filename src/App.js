@@ -24,7 +24,18 @@ import './components/ModernSidebar.css';
 // Supabase Client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Fehlerbehandlung für fehlende Umgebungsvariablen
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Supabase Umgebungsvariablen fehlen!');
+  console.error('REACT_APP_SUPABASE_URL:', supabaseUrl ? 'vorhanden' : 'fehlt');
+  console.error('REACT_APP_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'vorhanden' : 'fehlt');
+}
+
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);
 
 function App() {
   const [user, setUser] = useState(null);
