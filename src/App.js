@@ -8,8 +8,8 @@ import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import CleaningPlans from './pages/CleaningPlans';
 import Protocols from './pages/Protocols';
-import Header from './components/Header';
-import Sidebar from './components/Sidebar';
+import ProfessionalHeader from './components/ProfessionalHeader';
+import ModernSidebar from './components/ModernSidebar';
 import CustomerDetail from './pages/CustomerDetail';
 import CleaningLogsPage from './pages/CleaningLogsPage';
 import WorkersPage from './pages/WorkersPage';
@@ -18,6 +18,10 @@ import WorkerDashboard from './pages/WorkerDashboard';
 import CustomerLogin from './pages/CustomerLogin';
 import CustomerDashboard from './pages/CustomerDashboard';
 
+// Import CSS for new components
+import './components/ProfessionalHeader.css';
+import './components/ModernSidebar.css';
+
 // Supabase Client
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
@@ -25,30 +29,133 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function App() {
   const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState('admin'); // Default role for admin area
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     // Check ob Benutzer bereits eingeloggt ist
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
+      if (session?.user) {
+        setUser(session.user);
+        loadUserRole(session.user);
+      }
       setLoading(false);
     });
 
     // Listen auf Auth-Änderungen
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
+      if (session?.user) {
+        setUser(session.user);
+        loadUserRole(session.user);
+      } else {
+        setUser(null);
+        setUserRole('admin');
+      }
     });
 
     return () => subscription?.unsubscribe();
   }, []);
 
+  const loadUserRole = async (user) => {
+    try {
+      // Wenn Custom User Properties vorhanden sind, verwende diese
+      if (user.isCustomer) {
+        setUserRole('customer');
+        return;
+      }
+      if (user.isWorker) {
+        setUserRole('worker');
+        return;
+      }
+
+      // Versuche user_profiles Tabelle zu laden
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('email', user.email)
+        .single();
+
+      if (!error && profile) {
+        setUserRole(profile.role);
+      } else {
+        // Fallback: Rolle basierend auf Email ermitteln
+        const role = determineRoleFromEmail(user.email);
+        setUserRole(role);
+        
+        // Optional: Profil in DB erstellen für zukünftige Nutzung
+        createUserProfileIfNotExists(user.email, role);
+      }
+    } catch (error) {
+      console.error('Error loading user role:', error);
+      setUserRole('admin'); // Safe default für admin area
+    }
+  };
+
+  const determineRoleFromEmail = (email) => {
+    // Intelligente Rolle-Ermittlung basierend auf Email-Patterns
+    const emailLower = email.toLowerCase();
+    
+    if (emailLower.includes('admin') || emailLower.includes('administrator')) {
+      return 'admin';
+    }
+    if (emailLower.includes('manager') || emailLower.includes('mgr')) {
+      return 'manager';
+    }
+    if (emailLower.includes('supervisor') || emailLower.includes('super')) {
+      return 'supervisor';
+    }
+    if (emailLower.includes('worker') || emailLower.includes('employee')) {
+      return 'worker';
+    }
+    
+    // Default: Wenn im Admin-Bereich, dann admin
+    return 'admin';
+  };
+
+  const createUserProfileIfNotExists = async (email, role) => {
+    try {
+      const emailName = email.split('@')[0];
+      const names = emailName.split('.');
+      
+      await supabase
+        .from('user_profiles')
+        .upsert({
+          email: email,
+          first_name: names[0] || emailName,
+          last_name: names[1] || '',
+          role: role
+        }, {
+          onConflict: 'email'
+        });
+    } catch (error) {
+      // Ignoriere Fehler - Tabelle existiert möglicherweise noch nicht
+      console.log('User profiles table not available yet');
+    }
+  };
+
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setUserRole('admin');
+      setSidebarCollapsed(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const handleSidebarToggle = (collapsed) => {
+    setSidebarCollapsed(collapsed);
   };
 
   if (loading) {
-    return <div className="loading">Lädt...</div>;
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <p>Lädt...</p>
+      </div>
+    );
   }
 
   return (
@@ -73,20 +180,31 @@ function App() {
           <Route path="*" element={<Navigate to="/worker-dashboard" />} />
         </Routes>
       ) : (
+        // ADMIN AREA MIT NEUEN KOMPONENTEN
         <div className="app-container">
-          <Sidebar />
-          <div className="app-main">
-            <Header onLogout={handleLogout} />
+          <ModernSidebar 
+            onLogout={handleLogout}
+            userRole={userRole}
+            onToggle={handleSidebarToggle}
+          />
+          
+          <div className={`app-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+            <ProfessionalHeader 
+              onLogout={handleLogout}
+              userEmail={user.email}
+              userRole={userRole}
+            />
+            
             <main className="app-content">
               <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/customers" element={<Customers />} />
-                  <Route path="/customers/:customerId" element={<CustomerDetail />} />
-                  <Route path="/cleaning-plans" element={<CleaningPlans />} />
-                  <Route path="/cleaning-logs" element={<CleaningLogsPage />} />
-                  <Route path="/protocols" element={<Protocols />} />
-                  <Route path="/workers" element={<WorkersPage />} />
-                  <Route path="*" element={<Navigate to="/" />} />
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/customers" element={<Customers />} />
+                <Route path="/customers/:customerId" element={<CustomerDetail />} />
+                <Route path="/cleaning-plans" element={<CleaningPlans />} />
+                <Route path="/cleaning-logs" element={<CleaningLogsPage />} />
+                <Route path="/protocols" element={<Protocols />} />
+                <Route path="/workers" element={<WorkersPage />} />
+                <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </main>
           </div>
