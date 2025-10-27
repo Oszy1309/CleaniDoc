@@ -99,7 +99,7 @@ function WorkersPage() {
 
   const showNotification = (message, type) => {
     // Toast-Notification (implementieren mit react-hot-toast oder ähnlich)
-    console.log(\`\${type.toUpperCase()}: \${message}\`);
+    console.log(`${type.toUpperCase()}: ${message}`);
   };
 
   if (loading) {
