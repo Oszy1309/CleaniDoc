@@ -20,7 +20,7 @@ function WorkersPage() {
         .from('workers') // Deine Tabelle
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       setWorkers(data || []);
     } catch (error) {
@@ -42,10 +42,10 @@ function WorkersPage() {
         .insert([workerData])
         .select()
         .single();
-      
+
       if (error) throw error;
       setWorkers(prev => [data, ...prev]);
-      
+
       // Erfolgs-Benachrichtigung
       showNotification('Arbeiter erfolgreich erstellt', 'success');
     } catch (error) {
@@ -62,10 +62,10 @@ function WorkersPage() {
         .eq('id', workerId)
         .select()
         .single();
-      
+
       if (error) throw error;
       setWorkers(prev => prev.map(w => w.id === workerId ? data : w));
-      
+
       showNotification('Arbeiter erfolgreich bearbeitet', 'success');
     } catch (error) {
       console.error('Error updating worker:', error);
@@ -79,12 +79,12 @@ function WorkersPage() {
         .from('workers')
         .delete()
         .eq('id', workerId);
-      
+
       if (error) throw error;
       setWorkers(prev => prev.filter(w => w.id !== workerId));
       setShowDeleteModal(false);
       setWorkerToDelete(null);
-      
+
       showNotification('Arbeiter erfolgreich gelöscht', 'success');
     } catch (error) {
       console.error('Error deleting worker:', error);
@@ -140,4 +140,3 @@ function WorkersPage() {
 }
 
 export default WorkersPage;
-`;
