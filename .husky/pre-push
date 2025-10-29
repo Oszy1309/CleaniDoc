@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push checks..."
+
+# Run full test suite
+echo "🧪 Running full test suite..."
+npm run test:ci
+
+# Check if build succeeds
+echo "🏗️ Checking if build succeeds..."
+npm run build
+
+# Run E2E tests (optional - comment out if too slow)
+# echo "🎭 Running E2E tests..."
+# npm run e2e
+
+echo "✅ Pre-push checks completed successfully!"

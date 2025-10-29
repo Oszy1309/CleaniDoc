@@ -1,0 +1,45 @@
+# Dependencies
+node_modules
+
+# Production builds
+build
+dist
+
+# Generated files
+*.min.js
+*.min.css
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files
+.env*
+
+# Version control
+.git
+
+# IDE files
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage
+
+# Logs
+*.log
+
+# Documentation
+*.md
+CHANGELOG.md
+LICENSE
+
+# Config files with specific formatting
+vercel.json
+tsconfig.json
+playwright.config.js

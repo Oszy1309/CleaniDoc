@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+// import { EnhancedNotificationsDropdown, EnhancedSettingsDropdown, EnhancedUserDropdown } from './EnhancedHeaderDropdowns';
 
 function ProfessionalHeader({ onLogout, userEmail, userRole }) {
   const [notifications, setNotifications] = useState([]);
@@ -12,13 +13,23 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
   useEffect(() => {
     // Mock-Daten für Demo
     const mockNotifications = [
-      { id: 1, title: 'Neuer Reinigungsplan', message: 'Plan für Kunde XYZ erstellt', created_at: new Date() },
-      { id: 2, title: 'Tagesprotokoll ausstehend', message: 'Protokoll für heute noch nicht vollständig', created_at: new Date() }
+      {
+        id: 1,
+        title: 'Neuer Reinigungsplan',
+        message: 'Plan für Kunde XYZ erstellt',
+        created_at: new Date(),
+      },
+      {
+        id: 2,
+        title: 'Tagesprotokoll ausstehend',
+        message: 'Protokoll für heute noch nicht vollständig',
+        created_at: new Date(),
+      },
     ];
-    
+
     // Nur Benachrichtigungen zeigen wenn es welche gibt
     setNotifications(mockNotifications.slice(0, Math.floor(Math.random() * 3)));
-    
+
     // User Profile aus Email ableiten
     const emailName = userEmail?.split('@')[0] || 'Benutzer';
     const names = emailName.split('.');
@@ -26,26 +37,26 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
       first_name: names[0] || emailName,
       last_name: names[1] || '',
       role: userRole || 'Mitarbeiter',
-      email: userEmail
+      email: userEmail,
     });
   }, [userEmail, userRole]);
 
-  const getRoleDisplayName = (role) => {
+  const getRoleDisplayName = role => {
     const roleMap = {
-      'admin': 'Administrator',
-      'manager': 'Manager', 
-      'worker': 'Mitarbeiter',
-      'supervisor': 'Supervisor'
+      admin: 'Administrator',
+      manager: 'Manager',
+      worker: 'Mitarbeiter',
+      supervisor: 'Supervisor',
     };
     return roleMap[role] || 'Mitarbeiter';
   };
 
-  const getRoleBadgeClass = (role) => {
+  const getRoleBadgeClass = role => {
     const classMap = {
-      'admin': 'role-badge-admin',
-      'manager': 'role-badge-manager',
-      'worker': 'role-badge-worker', 
-      'supervisor': 'role-badge-supervisor'
+      admin: 'role-badge-admin',
+      manager: 'role-badge-manager',
+      worker: 'role-badge-worker',
+      supervisor: 'role-badge-supervisor',
     };
     return classMap[role] || 'role-badge-worker';
   };
@@ -72,7 +83,7 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
         <div className="header-right">
           {/* FUNKTIONALER BENACHRICHTIGUNGS-BUTTON */}
           <div className="header-dropdown">
-            <button 
+            <button
               className={`header-icon-btn ${notifications.length > 0 ? 'has-notifications' : ''}`}
               onClick={() => setShowNotifications(!showNotifications)}
               title={`${notifications.length} ungelesene Benachrichtigungen`}
@@ -124,7 +135,7 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
 
           {/* FUNKTIONALER EINSTELLUNGEN-BUTTON */}
           <div className="header-dropdown">
-            <button 
+            <button
               className="header-icon-btn"
               onClick={() => setShowSettings(!showSettings)}
               title="Einstellungen"
@@ -159,13 +170,8 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
 
           {/* USER MENU MIT ECHTER ROLLE */}
           <div className="header-dropdown">
-            <button 
-              className="user-menu-trigger"
-              onClick={() => setShowUserMenu(!showUserMenu)}
-            >
-              <div className="user-avatar">
-                {getUserInitials()}
-              </div>
+            <button className="user-menu-trigger" onClick={() => setShowUserMenu(!showUserMenu)}>
+              <div className="user-avatar">{getUserInitials()}</div>
               <div className="user-info">
                 <span className="user-name">
                   {userProfile?.first_name} {userProfile?.last_name}
@@ -180,11 +186,11 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
             {showUserMenu && (
               <div className="dropdown-menu user-dropdown">
                 <div className="dropdown-header">
-                  <div className="user-avatar-large">
-                    {getUserInitials()}
-                  </div>
+                  <div className="user-avatar-large">{getUserInitials()}</div>
                   <div className="user-details">
-                    <h3>{userProfile?.first_name} {userProfile?.last_name}</h3>
+                    <h3>
+                      {userProfile?.first_name} {userProfile?.last_name}
+                    </h3>
                     <p>{userProfile?.email}</p>
                     <span className={`role-badge ${getRoleBadgeClass(userProfile?.role)}`}>
                       {getRoleDisplayName(userProfile?.role)}
@@ -215,11 +221,11 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
 
       {/* OVERLAY ZUM SCHLIESSEN DER DROPDOWNS */}
       {(showNotifications || showSettings || showUserMenu) && (
-        <div 
+        <div
           className="dropdown-overlay"
           onClick={() => {
             setShowNotifications(false);
-            setShowSettings(false);  
+            setShowSettings(false);
             setShowUserMenu(false);
           }}
         />

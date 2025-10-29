@@ -1,0 +1,341 @@
+.signature-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.signature-modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.signature-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 2rem;
+  border-bottom: 2px solid #e0e7ff;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.signature-modal-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.signature-modal-header .plan-name {
+  margin: 0;
+  color: #667eea;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.close-btn:hover {
+  color: #333;
+  transform: scale(1.1);
+}
+
+.signature-modal-body {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.info-section {
+  background: #f0f3ff;
+  border-left: 4px solid #667eea;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 2rem;
+}
+
+.info-section .description {
+  margin: 0;
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Canvas Section */
+.canvas-section {
+  margin-bottom: 2rem;
+}
+
+.canvas-section label {
+  display: block;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.canvas-section .hint {
+  display: block;
+  color: #999;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  margin-top: -0.5rem;
+}
+
+.signature-canvas {
+  width: 100%;
+  border: 2px solid #e0e7ff;
+  border-radius: 8px;
+  background: white;
+  cursor: crosshair;
+  display: block;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.signature-canvas:hover {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-clear-signature {
+  background: #fee2e2;
+  color: #c00;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-signature:hover {
+  background: #fecaca;
+}
+
+/* Signer Info Section */
+.signer-info-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e7ff;
+}
+
+.signer-info-section .form-group {
+  margin-bottom: 1rem;
+}
+
+.signer-info-section .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.signer-info-section label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.signer-info-section input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e7ff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.signer-info-section input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Terms Section */
+.terms-section {
+  background: #f0fdf4;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #10b981;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.5;
+  user-select: none;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: #667eea;
+  flex-shrink: 0;
+}
+
+.checkbox-label span {
+  flex: 1;
+}
+
+/* Current Signatures Display */
+.current-signatures {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e7ff;
+}
+
+.current-signatures h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.signatures-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.signature-status {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.signature-status.signed {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #10b981;
+}
+
+.signature-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+/* Footer */
+.signature-modal-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 2rem;
+  border-top: 1px solid #e0e7ff;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  z-index: 10;
+}
+
+.btn-secondary,
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background: #e0e7ff;
+  color: #667eea;
+}
+
+.btn-secondary:hover {
+  background: #cfd9e8;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .signature-modal {
+    max-height: 100vh;
+  }
+
+  .signature-modal-header {
+    padding: 1.5rem;
+  }
+
+  .signature-modal-body {
+    padding: 1.5rem;
+  }
+
+  .signature-modal-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem;
+  }
+
+  .btn-secondary,
+  .btn-primary {
+    width: 100%;
+  }
+
+  .signature-canvas {
+    height: 120px;
+  }
+
+  .signer-info-section,
+  .terms-section,
+  .current-signatures {
+    padding: 1rem;
+  }
+}

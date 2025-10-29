@@ -1,41 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
+// Supabase client moved to lib/supabase.js
 import './App.css';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Customers from './pages/Customers';
-import CleaningPlans from './pages/CleaningPlans';
-import Protocols from './pages/Protocols';
-import ProfessionalHeader from './components/ProfessionalHeader';
-import ModernSidebar from './components/ModernSidebar';
-import CustomerDetail from './pages/CustomerDetail';
-import CleaningLogsPage from './pages/CleaningLogsPage';
-import WorkersPage from './pages/WorkersPage';
-import WorkerLogin from './pages/WorkerLogin';
-import WorkerDashboard from './pages/WorkerDashboard';
-import CustomerLogin from './pages/CustomerLogin';
-import CustomerDashboard from './pages/CustomerDashboard';
+import { supabase } from './lib/supabase';
+import Login from './pages/auth/Login';
+import Dashboard from './pages/dashboard/Dashboard';
+import Customers from './pages/dashboard/Customers';
+import CleaningPlans from './pages/dashboard/CleaningPlans';
+import Protocols from './pages/dashboard/Protocols';
+import ProfessionalHeader from './components/layout/ProfessionalHeader';
+import ModernSidebar from './components/layout/ModernSidebar';
+import CustomerDetail from './pages/dashboard/CustomerDetail';
+import CleaningLogsPage from './pages/dashboard/CleaningLogsPage';
+import WorkersPage from './pages/dashboard/WorkersPage';
+import WorkerLogin from './pages/auth/WorkerLogin';
+import WorkerDashboard from './pages/dashboard/WorkerDashboard';
+import CustomerLogin from './pages/auth/CustomerLogin';
+import CustomerDashboard from './pages/dashboard/CustomerDashboard';
 
 // Import CSS for new components
-import './components/ProfessionalHeader.css';
-import './components/ModernSidebar.css';
+import './components/layout/ProfessionalHeader.css';
+import './components/layout/ModernSidebar.css';
 
 // Supabase Client
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-
-// Fehlerbehandlung für fehlende Umgebungsvariablen
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase Umgebungsvariablen fehlen!');
-  console.error('REACT_APP_SUPABASE_URL:', supabaseUrl ? 'vorhanden' : 'fehlt');
-  console.error('REACT_APP_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'vorhanden' : 'fehlt');
-}
-
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-);
 
 function App() {
   const [user, setUser] = useState(null);
@@ -54,7 +41,9 @@ function App() {
     });
 
     // Listen auf Auth-Änderungen
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
         loadUserRole(session.user);
@@ -67,7 +56,7 @@ function App() {
     return () => subscription?.unsubscribe();
   }, []);
 
-  const loadUserRole = async (user) => {
+  const loadUserRole = async user => {
     try {
       // Wenn Custom User Properties vorhanden sind, verwende diese
       if (user.isCustomer) {
@@ -92,7 +81,7 @@ function App() {
         // Fallback: Rolle basierend auf Email ermitteln
         const role = determineRoleFromEmail(user.email);
         setUserRole(role);
-        
+
         // Optional: Profil in DB erstellen für zukünftige Nutzung
         createUserProfileIfNotExists(user.email, role);
       }
@@ -102,10 +91,10 @@ function App() {
     }
   };
 
-  const determineRoleFromEmail = (email) => {
+  const determineRoleFromEmail = email => {
     // Intelligente Rolle-Ermittlung basierend auf Email-Patterns
     const emailLower = email.toLowerCase();
-    
+
     if (emailLower.includes('admin') || emailLower.includes('administrator')) {
       return 'admin';
     }
@@ -118,7 +107,7 @@ function App() {
     if (emailLower.includes('worker') || emailLower.includes('employee')) {
       return 'worker';
     }
-    
+
     // Default: Wenn im Admin-Bereich, dann admin
     return 'admin';
   };
@@ -127,17 +116,18 @@ function App() {
     try {
       const emailName = email.split('@')[0];
       const names = emailName.split('.');
-      
-      await supabase
-        .from('user_profiles')
-        .upsert({
+
+      await supabase.from('user_profiles').upsert(
+        {
           email: email,
           first_name: names[0] || emailName,
           last_name: names[1] || '',
-          role: role
-        }, {
-          onConflict: 'email'
-        });
+          role: role,
+        },
+        {
+          onConflict: 'email',
+        }
+      );
     } catch (error) {
       // Ignoriere Fehler - Tabelle existiert möglicherweise noch nicht
       console.log('User profiles table not available yet');
@@ -155,7 +145,7 @@ function App() {
     }
   };
 
-  const handleSidebarToggle = (collapsed) => {
+  const handleSidebarToggle = collapsed => {
     setSidebarCollapsed(collapsed);
   };
 
@@ -180,7 +170,10 @@ function App() {
       ) : user.isCustomer ? (
         <Routes>
           <Route path="/" element={<CustomerDashboard user={user} onLogout={handleLogout} />} />
-          <Route path="/customer-dashboard" element={<CustomerDashboard user={user} onLogout={handleLogout} />} />
+          <Route
+            path="/customer-dashboard"
+            element={<CustomerDashboard user={user} onLogout={handleLogout} />}
+          />
           <Route path="*" element={<Navigate to="/customer-dashboard" />} />
         </Routes>
       ) : user.isWorker ? (
@@ -192,19 +185,19 @@ function App() {
       ) : (
         // ADMIN AREA MIT NEUEN KOMPONENTEN
         <div className="app-container">
-          <ModernSidebar 
+          <ModernSidebar
             onLogout={handleLogout}
             userRole={userRole}
             onToggle={handleSidebarToggle}
           />
-          
+
           <div className={`app-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-            <ProfessionalHeader 
+            <ProfessionalHeader
               onLogout={handleLogout}
               userEmail={user.email}
               userRole={userRole}
             />
-            
+
             <main className="app-content">
               <Routes>
                 <Route path="/" element={<Dashboard />} />

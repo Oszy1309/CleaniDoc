@@ -1,8 +1,160 @@
 {
-  "rewrites": [
+  "version": 2,
+  "name": "cleanidoc-dashboard",
+  "public": false,
+  "regions": ["fra1"],
+
+  "build": {
+    "env": {
+      "NODE_VERSION": "18.x"
+    }
+  },
+
+  "functions": {
+    "app/api/**/*": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
+    }
+  },
+
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+
+  "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(js|css|woff|woff2|ttf|eot|svg|ico|png|jpg|jpeg|gif|webp|mp4|webm|ogg|mp3|wav|flac|aac)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        }
+      ]
+    }
+  ],
+
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/auth/login",
+      "permanent": false
+    },
+    {
+      "source": "/register",
+      "destination": "/auth/register",
+      "permanent": false
+    }
+  ],
+
+  "trailingSlash": false,
+
+  "cleanUrls": true,
+
+  "framework": "create-react-app",
+
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-temp-files",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/backup-daily-reports",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/send-daily-summaries",
+      "schedule": "0 8 * * 1-5"
+    },
+    {
+      "path": "/api/cron/cleanup-old-logs",
+      "schedule": "0 1 * * 0"
+    },
+    {
+      "path": "/api/cron/generate-weekly-reports",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/check-system-health",
+      "schedule": "*/30 * * * *"
+    }
+  ],
+
+  "env": {
+    "NEXT_PUBLIC_APP_NAME": "CleaniDoc Dashboard",
+    "NEXT_PUBLIC_APP_VERSION": "1.0.0"
+  },
+
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "devCommand": "npm start",
+  "outputDirectory": "build",
+
+  "github": {
+    "autoJobCancelation": true
+  }
 }

@@ -1,0 +1,362 @@
+/* Error Boundary Styles */
+
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
+  padding: var(--space-lg);
+}
+
+.error-boundary-container {
+  max-width: 600px;
+  width: 100%;
+}
+
+.error-boundary-content {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2xl);
+  text-align: center;
+  border: 1px solid var(--color-border-primary);
+}
+
+.error-boundary-icon {
+  color: var(--color-error-500);
+  margin-bottom: var(--space-xl);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.error-boundary-message {
+  margin-bottom: var(--space-xl);
+}
+
+.error-boundary-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+  line-height: var(--line-height-tight);
+}
+
+.error-boundary-description {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.error-boundary-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.error-boundary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  border: none;
+  cursor: pointer;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.error-boundary-button:focus {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.error-boundary-button-primary {
+  background: var(--color-primary-600);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.error-boundary-button-primary:hover {
+  background: var(--color-primary-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.error-boundary-button-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.error-boundary-button-secondary {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-primary);
+}
+
+.error-boundary-button-secondary:hover {
+  background: var(--color-gray-200);
+  border-color: var(--color-border-secondary);
+  transform: translateY(-1px);
+}
+
+.error-boundary-button-secondary:active {
+  transform: translateY(0);
+}
+
+/* Error Details Section */
+.error-boundary-details {
+  border-top: 1px solid var(--color-border-primary);
+  padding-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  text-align: left;
+}
+
+.error-boundary-details-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  margin: 0 auto var(--space-md);
+}
+
+.error-boundary-details-toggle:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.error-boundary-chevron {
+  transition: transform var(--transition-base);
+}
+
+.error-boundary-chevron-open {
+  transform: rotate(180deg);
+}
+
+.error-boundary-details-content {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-border-primary);
+}
+
+.error-boundary-details-content h3 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.error-boundary-details-content h3:first-child {
+  margin-top: 0;
+}
+
+.error-boundary-code {
+  background: var(--color-gray-900);
+  color: var(--color-gray-100);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-gray-700);
+}
+
+.error-boundary-timestamp {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-primary);
+}
+
+/* Support Section */
+.error-boundary-support {
+  border-top: 1px solid var(--color-border-primary);
+  padding-top: var(--space-lg);
+  text-align: center;
+}
+
+.error-boundary-support-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--space-sm);
+}
+
+.error-boundary-support-link {
+  color: var(--color-primary-600);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.error-boundary-support-link:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+/* Async Error Boundary (smaller, inline errors) */
+.async-error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  min-height: 200px;
+}
+
+.async-error-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.async-error-icon {
+  color: var(--color-warning-500);
+  margin-bottom: var(--space-md);
+}
+
+.async-error-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.async-error-message {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+  line-height: var(--line-height-normal);
+}
+
+.async-error-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-primary-600);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.async-error-retry:hover {
+  background: var(--color-primary-700);
+  transform: translateY(-1px);
+}
+
+.async-error-retry:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .error-boundary {
+    padding: var(--space-md);
+  }
+
+  .error-boundary-content {
+    padding: var(--space-xl);
+  }
+
+  .error-boundary-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .error-boundary-description {
+    font-size: var(--font-size-base);
+  }
+
+  .error-boundary-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .error-boundary-button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .error-boundary-code {
+    font-size: 11px;
+    max-height: 150px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .error-boundary {
+    background: linear-gradient(135deg, var(--color-gray-900) 0%, var(--color-gray-800) 100%);
+  }
+
+  .error-boundary-code {
+    background: var(--color-gray-950);
+    color: var(--color-gray-200);
+    border-color: var(--color-gray-600);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .error-boundary-button-primary {
+    border: 2px solid var(--color-primary-800);
+  }
+
+  .error-boundary-button-secondary {
+    border: 2px solid var(--color-gray-800);
+  }
+
+  .error-boundary-code {
+    border: 2px solid var(--color-gray-600);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .error-boundary-icon {
+    animation: none;
+  }
+
+  .error-boundary-button,
+  .error-boundary-details-toggle,
+  .error-boundary-chevron,
+  .async-error-retry {
+    transition: none;
+  }
+}

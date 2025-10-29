@@ -1,0 +1,306 @@
+/* Design Tokens - CleaniDoc Dashboard */
+
+:root {
+  /* ===== SPACING TOKENS (mit clamp() für responsives Design) ===== */
+  --space-xs: clamp(0.25rem, 0.2rem + 0.25vw, 0.375rem); /* 4px - 6px */
+  --space-sm: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem); /* 8px - 12px */
+  --space-md: clamp(0.75rem, 0.6rem + 0.75vw, 1.125rem); /* 12px - 18px */
+  --space-lg: clamp(1rem, 0.8rem + 1vw, 1.5rem); /* 16px - 24px */
+  --space-xl: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem); /* 24px - 36px */
+  --space-2xl: clamp(2rem, 1.6rem + 2vw, 3rem); /* 32px - 48px */
+  --space-3xl: clamp(2.5rem, 2rem + 2.5vw, 3.75rem); /* 40px - 60px */
+  --space-4xl: clamp(3rem, 2.4rem + 3vw, 4.5rem); /* 48px - 72px */
+
+  /* ===== FONT SIZE TOKENS (mit clamp() für flüssige Typografie) ===== */
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem); /* 12px - 14px */
+  --font-size-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem); /* 14px - 16px */
+  --font-size-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem); /* 16px - 18px */
+  --font-size-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem); /* 18px - 20px */
+  --font-size-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem); /* 20px - 24px */
+  --font-size-2xl: clamp(1.5rem, 1.3rem + 1vw, 1.875rem); /* 24px - 30px */
+  --font-size-3xl: clamp(1.875rem, 1.6rem + 1.375vw, 2.25rem); /* 30px - 36px */
+  --font-size-4xl: clamp(2.25rem, 1.9rem + 1.75vw, 3rem); /* 36px - 48px */
+
+  /* ===== LINE HEIGHT TOKENS ===== */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ===== FONT WEIGHT TOKENS ===== */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* ===== FONT FAMILY TOKENS ===== */
+  --font-family-sans:
+    system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono:
+    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+
+  /* ===== COLOR TOKENS ===== */
+  /* Primary Colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Gray Colors */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* Success Colors */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+
+  /* Warning Colors */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+
+  /* Error Colors */
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+
+  /* ===== SEMANTIC COLOR TOKENS ===== */
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-500);
+  --color-text-inverse: #ffffff;
+
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: var(--color-gray-50);
+  --color-bg-tertiary: var(--color-gray-100);
+
+  --color-border-primary: var(--color-gray-200);
+  --color-border-secondary: var(--color-gray-300);
+  --color-border-focus: var(--color-primary-500);
+
+  /* ===== BORDER RADIUS TOKENS ===== */
+  --radius-none: 0;
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-base: 0.25rem; /* 4px */
+  --radius-md: 0.375rem; /* 6px */
+  --radius-lg: 0.5rem; /* 8px */
+  --radius-xl: 0.75rem; /* 12px */
+  --radius-2xl: 1rem; /* 16px */
+  --radius-full: 9999px;
+
+  /* ===== SHADOW TOKENS ===== */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* ===== TRANSITION TOKENS ===== */
+  --transition-fast: 0.15s ease-out;
+  --transition-base: 0.2s ease-out;
+  --transition-slow: 0.3s ease-out;
+  --transition-slower: 0.5s ease-out;
+
+  /* ===== Z-INDEX TOKENS ===== */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  --z-index-toast: 1080;
+
+  /* ===== BREAKPOINT TOKENS (für Container Queries) ===== */
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1400px;
+
+  /* ===== COMPONENT SPECIFIC TOKENS ===== */
+  /* Form Controls */
+  --form-control-height: clamp(2.5rem, 2.3rem + 1vw, 3rem);
+  --form-control-padding-x: var(--space-md);
+  --form-control-padding-y: var(--space-sm);
+
+  /* Buttons */
+  --button-height-sm: clamp(2rem, 1.8rem + 1vw, 2.5rem);
+  --button-height-md: clamp(2.5rem, 2.3rem + 1vw, 3rem);
+  --button-height-lg: clamp(3rem, 2.8rem + 1vw, 3.5rem);
+  --button-padding-x: var(--space-lg);
+  --button-padding-y: var(--space-sm);
+
+  /* Card */
+  --card-padding: var(--space-lg);
+  --card-border-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-sm);
+
+  /* Header */
+  --header-height: clamp(3.5rem, 3rem + 2.5vw, 4.5rem);
+
+  /* Sidebar */
+  --sidebar-width: clamp(240px, 20vw, 280px);
+  --sidebar-width-collapsed: 64px;
+}
+
+/* ===== DARK MODE TOKENS ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text-primary: var(--color-gray-100);
+    --color-text-secondary: var(--color-gray-300);
+    --color-text-tertiary: var(--color-gray-400);
+    --color-text-inverse: var(--color-gray-900);
+
+    --color-bg-primary: var(--color-gray-900);
+    --color-bg-secondary: var(--color-gray-800);
+    --color-bg-tertiary: var(--color-gray-700);
+
+    --color-border-primary: var(--color-gray-700);
+    --color-border-secondary: var(--color-gray-600);
+  }
+}
+
+/* ===== UTILITY CLASSES FÜR SPACING ===== */
+.p-xs {
+  padding: var(--space-xs) !important;
+}
+.p-sm {
+  padding: var(--space-sm) !important;
+}
+.p-md {
+  padding: var(--space-md) !important;
+}
+.p-lg {
+  padding: var(--space-lg) !important;
+}
+.p-xl {
+  padding: var(--space-xl) !important;
+}
+
+.m-xs {
+  margin: var(--space-xs) !important;
+}
+.m-sm {
+  margin: var(--space-sm) !important;
+}
+.m-md {
+  margin: var(--space-md) !important;
+}
+.m-lg {
+  margin: var(--space-lg) !important;
+}
+.m-xl {
+  margin: var(--space-xl) !important;
+}
+
+.gap-xs {
+  gap: var(--space-xs) !important;
+}
+.gap-sm {
+  gap: var(--space-sm) !important;
+}
+.gap-md {
+  gap: var(--space-md) !important;
+}
+.gap-lg {
+  gap: var(--space-lg) !important;
+}
+.gap-xl {
+  gap: var(--space-xl) !important;
+}
+
+/* ===== UTILITY CLASSES FÜR TYPOGRAPHY ===== */
+.text-xs {
+  font-size: var(--font-size-xs) !important;
+}
+.text-sm {
+  font-size: var(--font-size-sm) !important;
+}
+.text-base {
+  font-size: var(--font-size-base) !important;
+}
+.text-lg {
+  font-size: var(--font-size-lg) !important;
+}
+.text-xl {
+  font-size: var(--font-size-xl) !important;
+}
+.text-2xl {
+  font-size: var(--font-size-2xl) !important;
+}
+
+.font-light {
+  font-weight: var(--font-weight-light) !important;
+}
+.font-normal {
+  font-weight: var(--font-weight-normal) !important;
+}
+.font-medium {
+  font-weight: var(--font-weight-medium) !important;
+}
+.font-semibold {
+  font-weight: var(--font-weight-semibold) !important;
+}
+.font-bold {
+  font-weight: var(--font-weight-bold) !important;
+}
+
+/* ===== RESPONSIVE DESIGN HELPERS ===== */
+@container (min-width: 576px) {
+  .container-sm\:text-lg {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@container (min-width: 768px) {
+  .container-md\:text-xl {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ===== PRINT TOKENS ===== */
+@media print {
+  :root {
+    --font-size-xs: 10pt;
+    --font-size-sm: 11pt;
+    --font-size-base: 12pt;
+    --font-size-lg: 14pt;
+    --font-size-xl: 16pt;
+    --font-size-2xl: 18pt;
+    --font-size-3xl: 24pt;
+    --font-size-4xl: 32pt;
+
+    --space-xs: 2pt;
+    --space-sm: 4pt;
+    --space-md: 6pt;
+    --space-lg: 8pt;
+    --space-xl: 12pt;
+    --space-2xl: 16pt;
+  }
+}

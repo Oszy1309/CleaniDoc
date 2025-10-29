@@ -1,0 +1,143 @@
+.dashboard {
+  max-width: 1400px;
+  width: 100%;
+}
+
+.dashboard h1 {
+  font-size: 1.875rem;
+  color: var(--text-primary);
+  margin-bottom: 2.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 1px 3px var(--shadow-light);
+  border: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  box-shadow: 0 4px 12px var(--shadow-medium);
+  border-color: var(--primary-navy);
+  transform: translateY(-2px);
+}
+
+.stat-card.clickable:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px var(--shadow-medium);
+}
+
+.stat-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: 500;
+}
+
+.stat-icon.customers {
+  background: var(--primary-navy);
+}
+
+.stat-icon.protocols {
+  background: var(--secondary-slate);
+}
+
+.stat-icon.completed {
+  background: var(--success-green);
+}
+
+.stat-icon.incidents {
+  background: var(--warning-amber);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.dashboard-section {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 2.5rem;
+  box-shadow: 0 1px 3px var(--shadow-light);
+  border: 1px solid var(--border-light);
+}
+
+.dashboard-section h2 {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.dashboard-section p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard h1 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+  }
+
+  .stat-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .dashboard-section {
+    padding: 2rem;
+  }
+}

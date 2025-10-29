@@ -1,0 +1,138 @@
+/* GLOBAL APP LAYOUT */
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 280px;
+  overflow: hidden;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-main.sidebar-collapsed {
+  margin-left: 70px;
+}
+
+.app-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+
+/* LOADING SCREEN */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  gap: 1.5rem;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #1e40af;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-screen p {
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+/* LEGACY LOADING (fallback) */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.25rem;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .app-main {
+    margin-left: 0 !important;
+  }
+  
+  .app-content {
+    padding: 1rem;
+  }
+  
+  .loading-screen {
+    padding: 2rem;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+}
+
+/* SMOOTH TRANSITIONS FOR LAYOUT CHANGES */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f8fafc;
+}
+
+/* ENSURE PROPER STACKING */
+.app-container {
+  position: relative;
+  z-index: 0;
+}
+
+.modern-sidebar {
+  z-index: 1000;
+}
+
+.professional-header {
+  z-index: 100;
+}
+
+/* PRINT STYLES */
+@media print {
+  .modern-sidebar,
+  .professional-header {
+    display: none !important;
+  }
+  
+  .app-main {
+    margin-left: 0 !important;
+  }
+  
+  .app-content {
+    padding: 0 !important;
+  }
+}
