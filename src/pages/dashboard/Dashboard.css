@@ -12,7 +12,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
   gap: 2rem;
 }
 
@@ -27,12 +27,22 @@
   margin: 0 0 0.5rem 0;
   letter-spacing: -0.02em;
   line-height: 1.2;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.dashboard-title:hover {
+  color: #3b82f6;
+}
+
+.dashboard-title:active {
+  transform: scale(0.98);
 }
 
 .dashboard-subtitle {
   font-size: 1rem;
   color: #64748b;
-  margin: 0;
+  margin: 0.75rem 0 0 0;
   font-weight: 400;
   line-height: 1.5;
 }
@@ -84,6 +94,16 @@
   margin-bottom: 2rem;
 }
 
+/* Card Labels */
+.card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
 .stat-card.modern-card {
   background: white;
   border-radius: 16px;
@@ -121,7 +141,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .stat-icon {

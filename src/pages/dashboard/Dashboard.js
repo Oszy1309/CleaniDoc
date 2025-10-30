@@ -174,7 +174,13 @@ function Dashboard() {
       {/* Dashboard Header */}
       <div className="dashboard-header">
         <div className="header-content">
-          <h1 className="dashboard-title">Dashboard</h1>
+          <h1
+            className="dashboard-title"
+            onClick={() => navigate('/')}
+            title="Zum Dashboard"
+          >
+            Dashboard
+          </h1>
           <p className="dashboard-subtitle">Übersicht Ihrer Reinigungsaktivitäten und wichtigsten Kennzahlen.</p>
         </div>
       </div>
@@ -182,6 +188,7 @@ function Dashboard() {
       {/* Real Stats Grid */}
       <div className="enhanced-stats-grid">
         <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/customers')}>
+          <div className="card-label">Aktive Kunden</div>
           <div className="card-header">
             <div className="stat-icon customers">
               <Users size={24} />
@@ -189,12 +196,13 @@ function Dashboard() {
           </div>
           <div className="card-content">
             <h3 className="stat-value">{stats.totalCustomers}</h3>
-            <p className="stat-label">Aktive Kunden</p>
+            <p className="stat-label">Kunden</p>
             <p className="stat-description">Registrierte Kunden im System</p>
           </div>
         </div>
 
         <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/protocols')}>
+          <div className="card-label">Protokolle Gesamt</div>
           <div className="card-header">
             <div className="stat-icon protocols">
               <FileCheck size={24} />
@@ -202,12 +210,13 @@ function Dashboard() {
           </div>
           <div className="card-content">
             <h3 className="stat-value">{stats.totalProtocols}</h3>
-            <p className="stat-label">Protokolle gesamt</p>
+            <p className="stat-label">Protokolle</p>
             <p className="stat-description">Alle erstellten Reinigungsprotokolle</p>
           </div>
         </div>
 
         <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/cleaning-logs')}>
+          <div className="card-label">Heute Abgeschlossen</div>
           <div className="card-header">
             <div className="stat-icon completed">
               <CheckCircle size={24} />
@@ -215,12 +224,13 @@ function Dashboard() {
           </div>
           <div className="card-content">
             <h3 className="stat-value">{stats.completedToday}</h3>
-            <p className="stat-label">Heute abgeschlossen</p>
+            <p className="stat-label">Aufgaben</p>
             <p className="stat-description">Abgeschlossene Aufgaben heute</p>
           </div>
         </div>
 
         <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/cleaning-logs')}>
+          <div className="card-label">Ausstehende Aufgaben</div>
           <div className="card-header">
             <div className="stat-icon pending">
               <AlertTriangle size={24} />
@@ -228,12 +238,13 @@ function Dashboard() {
           </div>
           <div className="card-content">
             <h3 className="stat-value">{stats.pendingTasks}</h3>
-            <p className="stat-label">Ausstehende Aufgaben</p>
+            <p className="stat-label">Offen</p>
             <p className="stat-description">Noch zu erledigende Protokolle</p>
           </div>
         </div>
 
         <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/workers')}>
+          <div className="card-label">Aktive Mitarbeiter</div>
           <div className="card-header">
             <div className="stat-icon workers">
               <Users size={24} />
@@ -241,12 +252,13 @@ function Dashboard() {
           </div>
           <div className="card-content">
             <h3 className="stat-value">{stats.activeWorkers}</h3>
-            <p className="stat-label">Aktive Mitarbeiter</p>
+            <p className="stat-label">Mitarbeiter</p>
             <p className="stat-description">Registrierte Arbeiter im System</p>
           </div>
         </div>
 
         <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/cleaning-plans')}>
+          <div className="card-label">Reinigungspläne</div>
           <div className="card-header">
             <div className="stat-icon plans">
               <Calendar size={24} />
@@ -254,7 +266,7 @@ function Dashboard() {
           </div>
           <div className="card-content">
             <h3 className="stat-value">{stats.cleaningPlans}</h3>
-            <p className="stat-label">Reinigungspläne</p>
+            <p className="stat-label">Pläne</p>
             <p className="stat-description">Erstellte Reinigungspläne</p>
           </div>
         </div>
