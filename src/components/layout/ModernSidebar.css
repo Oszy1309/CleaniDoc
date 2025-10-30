@@ -110,7 +110,7 @@
   padding: 0.75rem 1rem;
   margin: 0 0.5rem;
   border-radius: 8px;
-  color: #94a3b8;
+  color: #e2e8f0;
   text-decoration: none;
   transition: all 0.2s ease;
   overflow: hidden;
@@ -118,7 +118,7 @@
 
 .nav-link:hover {
   background: rgba(30, 64, 175, 0.1);
-  color: #cbd5e1;
+  color: #ffffff;
 }
 
 .nav-link.active {
