@@ -39,6 +39,22 @@ function Login({ setUser }) {
 
   return (
     <div className="modern-login-page">
+      {/* DEPLOYMENT TEST BANNER */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4)',
+        color: 'white',
+        padding: '8px',
+        textAlign: 'center',
+        fontWeight: 'bold',
+        zIndex: 9999,
+        fontSize: '14px'
+      }}>
+        🔥 VERCEL DEPLOYMENT TEST - 31.10.2025 18:20 CET 🔥
+      </div>
       {/* Dynamic Background */}
       <div className="login-background">
         <div className="bg-shapes">
@@ -117,8 +133,8 @@ function Login({ setUser }) {
         <div className="login-form-section">
           <div className="login-glass-card">
             <div className="login-header">
-              <h2>Admin Dashboard v2.0</h2>
-              <p>Willkommen zurück! Professionelles Dashboard ist jetzt verfügbar.</p>
+              <h2>🚀 Admin Dashboard v2.0 LIVE 🚀</h2>
+              <p>⏰ DEPLOYED: 31.10.2025 18:20 CET - Professionelles Dashboard aktiv!</p>
             </div>
 
             <form onSubmit={handleLogin} className="modern-login-form">
