@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Settings, LogOut, User, ChevronDown } from 'lucide-react';
 // import { EnhancedNotificationsDropdown, EnhancedSettingsDropdown, EnhancedUserDropdown } from './EnhancedHeaderDropdowns';
 
 function ProfessionalHeader({ onLogout, userEmail, userRole }) {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -41,6 +43,22 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
     });
   }, [userEmail, userRole]);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = event => {
+      if (!event.target.closest('.header__dropdown')) {
+        setShowNotifications(false);
+        setShowSettings(false);
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
   const getRoleDisplayName = role => {
     const roleMap = {
       admin: 'Administrator',
@@ -49,16 +67,6 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
       supervisor: 'Supervisor',
     };
     return roleMap[role] || 'Mitarbeiter';
-  };
-
-  const getRoleBadgeClass = role => {
-    const classMap = {
-      admin: 'role-badge-admin',
-      manager: 'role-badge-manager',
-      worker: 'role-badge-worker',
-      supervisor: 'role-badge-supervisor',
-    };
-    return classMap[role] || 'role-badge-worker';
   };
 
   const getUserInitials = () => {
@@ -75,46 +83,51 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
 
   return (
     <>
-      <header className="professional-header">
-        <div className="header-left">
-          <h2 className="header-title">Dashboard</h2>
+      <header className="header">
+        <div className="header__left">
+          <h2 className="header__title" onClick={() => navigate('/')} title="Zum Dashboard">
+            Dashboard
+          </h2>
         </div>
 
-        <div className="header-right">
-          {/* FUNKTIONALER BENACHRICHTIGUNGS-BUTTON */}
-          <div className="header-dropdown">
+        <div className="header__right">
+          {/* BENACHRICHTIGUNGS-BUTTON */}
+          <div className="header__dropdown">
             <button
-              className={`header-icon-btn ${notifications.length > 0 ? 'has-notifications' : ''}`}
+              className={`header__icon-btn ${showNotifications ? 'header__icon-btn--active' : ''}`}
               onClick={() => setShowNotifications(!showNotifications)}
               title={`${notifications.length} ungelesene Benachrichtigungen`}
             >
               <Bell size={20} />
               {notifications.length > 0 && (
-                <span className="notification-badge">
+                <span className="header__notification-badge">
                   {notifications.length > 99 ? '99+' : notifications.length}
                 </span>
               )}
             </button>
 
             {showNotifications && (
-              <div className="dropdown-menu notifications-dropdown">
-                <div className="dropdown-header">
-                  <h3>Benachrichtigungen</h3>
-                  <span className="notification-count">{notifications.length} ungelesen</span>
+              <div className="dropdown dropdown--notifications">
+                <div className="dropdown__header">
+                  <h3 className="dropdown__title">Benachrichtigungen</h3>
+                  <span className="dropdown__subtitle">{notifications.length} ungelesen</span>
                 </div>
-                <div className="dropdown-content">
+                <div className="dropdown__content">
                   {notifications.length === 0 ? (
-                    <div className="empty-notifications">
-                      <Bell size={48} className="empty-icon" />
-                      <p>Keine neuen Benachrichtigungen</p>
+                    <div className="notification--empty">
+                      <Bell size={48} className="notification--empty__icon" />
+                      <p className="notification--empty__text">Keine neuen Benachrichtigungen</p>
                     </div>
                   ) : (
                     notifications.map(notification => (
-                      <div key={notification.id} className="notification-item">
-                        <div className="notification-content">
-                          <h4>{notification.title}</h4>
-                          <p>{notification.message}</p>
-                          <span className="notification-time">
+                      <div key={notification.id} className="notification">
+                        <div className="notification__icon notification__icon--info">
+                          <Bell size={16} />
+                        </div>
+                        <div className="notification__content">
+                          <h4 className="notification__title">{notification.title}</h4>
+                          <p className="notification__message">{notification.message}</p>
+                          <span className="notification__time">
                             {new Date(notification.created_at).toLocaleString()}
                           </span>
                         </div>
@@ -123,8 +136,8 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
                   )}
                 </div>
                 {notifications.length > 0 && (
-                  <div className="dropdown-footer">
-                    <button className="btn-text" onClick={clearNotifications}>
+                  <div className="dropdown__footer">
+                    <button className="dropdown__footer-btn" onClick={clearNotifications}>
                       Alle als gelesen markieren
                     </button>
                   </div>
@@ -133,10 +146,10 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
             )}
           </div>
 
-          {/* FUNKTIONALER EINSTELLUNGEN-BUTTON */}
-          <div className="header-dropdown">
+          {/* EINSTELLUNGEN-BUTTON */}
+          <div className="header__dropdown">
             <button
-              className="header-icon-btn"
+              className={`header__icon-btn ${showSettings ? 'header__icon-btn--active' : ''}`}
               onClick={() => setShowSettings(!showSettings)}
               title="Einstellungen"
             >
@@ -144,20 +157,38 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
             </button>
 
             {showSettings && (
-              <div className="dropdown-menu settings-dropdown">
-                <div className="dropdown-header">
-                  <h3>Einstellungen</h3>
+              <div className="dropdown">
+                <div className="dropdown__header">
+                  <h3 className="dropdown__title">Einstellungen</h3>
                 </div>
-                <div className="dropdown-content">
-                  <button className="dropdown-item">
+                <div className="dropdown__content">
+                  <button
+                    className="dropdown__item"
+                    onClick={() => {
+                      setShowSettings(false);
+                      navigate('/profile');
+                    }}
+                  >
                     <User size={16} />
                     <span>Profil bearbeiten</span>
                   </button>
-                  <button className="dropdown-item">
+                  <button
+                    className="dropdown__item"
+                    onClick={() => {
+                      setShowSettings(false);
+                      navigate('/notifications');
+                    }}
+                  >
                     <Bell size={16} />
                     <span>Benachrichtigungen</span>
                   </button>
-                  <button className="dropdown-item">
+                  <button
+                    className="dropdown__item"
+                    onClick={() => {
+                      setShowSettings(false);
+                      navigate('/system-settings');
+                    }}
+                  >
                     <Settings size={16} />
                     <span>Systemeinstellungen</span>
                   </button>
@@ -166,17 +197,19 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
             )}
           </div>
 
-          <div className="header-divider"></div>
+          <div className="header__divider"></div>
 
-          {/* USER MENU MIT ECHTER ROLLE */}
-          <div className="header-dropdown">
-            <button className="user-menu-trigger" onClick={() => setShowUserMenu(!showUserMenu)}>
-              <div className="user-avatar">{getUserInitials()}</div>
-              <div className="user-info">
-                <span className="user-name">
+          {/* USER MENU */}
+          <div className="header__dropdown">
+            <button className="header__user-menu" onClick={() => setShowUserMenu(!showUserMenu)}>
+              <div className="header__user-avatar">{getUserInitials()}</div>
+              <div className="header__user-info">
+                <span className="header__user-name">
                   {userProfile?.first_name} {userProfile?.last_name}
                 </span>
-                <span className={`role-badge ${getRoleBadgeClass(userProfile?.role)}`}>
+                <span
+                  className={`header__user-role header__user-role--${userProfile?.role || 'worker'}`}
+                >
                   {getRoleDisplayName(userProfile?.role)}
                 </span>
               </div>
@@ -184,31 +217,43 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
             </button>
 
             {showUserMenu && (
-              <div className="dropdown-menu user-dropdown">
-                <div className="dropdown-header">
-                  <div className="user-avatar-large">{getUserInitials()}</div>
-                  <div className="user-details">
-                    <h3>
+              <div className="dropdown dropdown--user">
+                <div className="dropdown__user-header">
+                  <div className="dropdown__user-avatar">{getUserInitials()}</div>
+                  <div className="dropdown__user-details">
+                    <h3 className="dropdown__user-name">
                       {userProfile?.first_name} {userProfile?.last_name}
                     </h3>
-                    <p>{userProfile?.email}</p>
-                    <span className={`role-badge ${getRoleBadgeClass(userProfile?.role)}`}>
+                    <p className="dropdown__user-email">{userProfile?.email}</p>
+                    <span
+                      className={`header__user-role header__user-role--${userProfile?.role || 'worker'}`}
+                    >
                       {getRoleDisplayName(userProfile?.role)}
                     </span>
                   </div>
                 </div>
-                <div className="dropdown-content">
-                  <button className="dropdown-item">
+                <div className="dropdown__content">
+                  <button
+                    className="dropdown__item"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      navigate('/profile');
+                    }}
+                  >
                     <User size={16} />
                     <span>Mein Profil</span>
                   </button>
-                  <button className="dropdown-item">
+                  <button
+                    className="dropdown__item"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      navigate('/account-settings');
+                    }}
+                  >
                     <Settings size={16} />
                     <span>Kontoeinstellungen</span>
                   </button>
-                </div>
-                <div className="dropdown-footer">
-                  <button className="dropdown-item logout" onClick={onLogout}>
+                  <button className="dropdown__item dropdown__item--danger" onClick={onLogout}>
                     <LogOut size={16} />
                     <span>Abmelden</span>
                   </button>
@@ -218,18 +263,6 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
           </div>
         </div>
       </header>
-
-      {/* OVERLAY ZUM SCHLIESSEN DER DROPDOWNS */}
-      {(showNotifications || showSettings || showUserMenu) && (
-        <div
-          className="dropdown-overlay"
-          onClick={() => {
-            setShowNotifications(false);
-            setShowSettings(false);
-            setShowUserMenu(false);
-          }}
-        />
-      )}
     </>
   );
 }

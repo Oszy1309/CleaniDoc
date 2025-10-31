@@ -7,13 +7,14 @@ import {
   Calendar,
   CheckCircle,
   UserPlus,
-  FileText,
   ArrowRight,
   Activity,
   Clock,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react';
-import './Dashboard.css';
+import '../../styles/ProfessionalDashboard.css';
+import StatCard from '../../components/dashboard/StatCard';
+import ActivityItem from '../../components/dashboard/ActivityItem';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ function Dashboard() {
 
   useEffect(() => {
     fetchRealStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchRealStats = async () => {
@@ -45,7 +47,7 @@ function Dashboard() {
         { count: pendingCount },
         { count: workerCount },
         { count: planCount },
-        { data: recentLogs }
+        { data: recentLogs },
       ] = await Promise.all([
         // Aktive Kunden zählen
         supabase.from('customers').select('*', { count: 'exact', head: true }),
@@ -54,12 +56,16 @@ function Dashboard() {
         supabase.from('cleaning_logs').select('*', { count: 'exact', head: true }),
 
         // Heute abgeschlossene Protokolle
-        supabase.from('cleaning_logs').select('*', { count: 'exact', head: true })
+        supabase
+          .from('cleaning_logs')
+          .select('*', { count: 'exact', head: true })
           .eq('log_date', new Date().toISOString().split('T')[0])
           .eq('status', 'completed'),
 
         // Ausstehende Protokolle
-        supabase.from('cleaning_logs').select('*', { count: 'exact', head: true })
+        supabase
+          .from('cleaning_logs')
+          .select('*', { count: 'exact', head: true })
           .eq('status', 'pending'),
 
         // Aktive Workers
@@ -69,21 +75,25 @@ function Dashboard() {
         supabase.from('cleaning_plans').select('*', { count: 'exact', head: true }),
 
         // Letzte 5 Protokolle für Activity Feed
-        supabase.from('cleaning_logs')
-          .select(`
+        supabase
+          .from('cleaning_logs')
+          .select(
+            `
             id,
             log_date,
             status,
             created_at,
             customers(name),
             workers(first_name, last_name)
-          `)
+          `
+          )
           .order('created_at', { ascending: false })
-          .limit(5)
+          .limit(5),
       ]);
 
       // Berechne echte Completion Rate
-      const completionRate = protocolCount > 0 ? Math.round(((protocolCount - pendingCount) / protocolCount) * 100) : 0;
+      const completionRate =
+        protocolCount > 0 ? Math.round(((protocolCount - pendingCount) / protocolCount) * 100) : 0;
 
       const realStats = {
         totalCustomers: customerCount || 0,
@@ -96,17 +106,17 @@ function Dashboard() {
       };
 
       // Echte Activity aus Recent Logs
-      const realActivity = recentLogs?.map((log) => ({
-        id: log.id,
-        type: log.status === 'completed' ? 'completed' : 'pending',
-        message: `${log.status === 'completed' ? 'Abgeschlossen' : 'Erstellt'}: ${log.customers?.name || 'Unbekannter Kunde'}`,
-        time: formatTimeAgo(log.created_at),
-        user: log.workers ? `${log.workers.first_name} ${log.workers.last_name}` : 'System'
-      })) || [];
+      const realActivity =
+        recentLogs?.map(log => ({
+          id: log.id,
+          type: log.status === 'completed' ? 'completed' : 'pending',
+          message: `${log.status === 'completed' ? 'Abgeschlossen' : 'Erstellt'}: ${log.customers?.name || 'Unbekannter Kunde'}`,
+          time: formatTimeAgo(log.created_at),
+          user: log.workers ? `${log.workers.first_name} ${log.workers.last_name}` : 'System',
+        })) || [];
 
       setStats(realStats);
       setRecentActivity(realActivity);
-
     } catch (error) {
       console.error('Fehler beim Laden der Statistiken:', error);
       // Fallback wenn Datenbank nicht erreichbar
@@ -125,7 +135,7 @@ function Dashboard() {
     }
   };
 
-  const formatTimeAgo = (dateString) => {
+  const formatTimeAgo = dateString => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
@@ -140,7 +150,7 @@ function Dashboard() {
     navigate(route);
   };
 
-  const getActivityIcon = (type) => {
+  const getActivityIcon = type => {
     const icons = {
       completed: CheckCircle,
       pending: Clock,
@@ -148,16 +158,6 @@ function Dashboard() {
       plan: Calendar,
     };
     return icons[type] || Activity;
-  };
-
-  const getActivityColor = (type) => {
-    const colors = {
-      completed: 'green',
-      pending: 'orange',
-      customer: 'blue',
-      plan: 'purple',
-    };
-    return colors[type] || 'gray';
   };
 
   if (loading) {
@@ -170,215 +170,210 @@ function Dashboard() {
   }
 
   return (
-    <div className="modern-dashboard">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <div className="header-content">
-          <h1
-            className="dashboard-title"
-            onClick={() => navigate('/')}
-            title="Zum Dashboard"
-          >
-            Dashboard
-          </h1>
-          <p className="dashboard-subtitle">Übersicht Ihrer Reinigungsaktivitäten und wichtigsten Kennzahlen.</p>
+    <div className="dashboard-main">
+      {/* Header */}
+      <section className="dashboard-header">
+        <div className="card__header">
+          <div>
+            <h1 className="card__title">Dashboard</h1>
+            <p className="text-sm text-muted">
+              Übersicht Ihrer Reinigungsaktivitäten und wichtigsten Kennzahlen
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Real Stats Grid */}
-      <div className="enhanced-stats-grid">
-        <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/customers')}>
-          <div className="card-label">Aktive Kunden</div>
-          <div className="card-header">
-            <div className="stat-icon customers">
-              <Users size={24} />
+      {/* Main Content */}
+      <div className="dashboard-body">
+        {/* Stats Grid */}
+        <div className="grid grid--auto">
+          <StatCard
+            label="Aktive Kunden"
+            value={stats.totalCustomers}
+            unit="Kunden"
+            description="Im System registriert"
+            icon={Users}
+            isLoading={loading}
+            onClick={() => handleCardClick('/customers')}
+          />
+
+          <StatCard
+            label="Protokolle Gesamt"
+            value={stats.totalProtocols}
+            unit="Protokolle"
+            description="Alle erstellten Einträge"
+            icon={FileCheck}
+            isLoading={loading}
+            onClick={() => handleCardClick('/protocols')}
+          />
+
+          <StatCard
+            label="Heute Abgeschlossen"
+            value={stats.completedToday}
+            unit="Aufgaben"
+            description="Heute fertiggestellt"
+            icon={CheckCircle}
+            variant="success"
+            isLoading={loading}
+            onClick={() => handleCardClick('/cleaning-logs')}
+          />
+
+          <StatCard
+            label="Ausstehende Aufgaben"
+            value={stats.pendingTasks}
+            unit="Offen"
+            description="Noch zu erledigen"
+            icon={AlertTriangle}
+            variant="warning"
+            isLoading={loading}
+            onClick={() => handleCardClick('/cleaning-logs')}
+          />
+
+          <StatCard
+            label="Aktive Mitarbeiter"
+            value={stats.activeWorkers}
+            unit="Mitarbeiter"
+            description="Im System aktiv"
+            icon={Users}
+            isLoading={loading}
+            onClick={() => handleCardClick('/workers')}
+          />
+
+          <StatCard
+            label="Reinigungspläne"
+            value={stats.cleaningPlans}
+            unit="Pläne"
+            description="Erstellte Pläne"
+            icon={Calendar}
+            isLoading={loading}
+            onClick={() => handleCardClick('/cleaning-plans')}
+          />
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid grid--cols-2" style={{ marginTop: 'var(--spacing-8)' }}>
+          {/* Activities Card */}
+          <div className="card">
+            <div className="card__header">
+              <h2 className="card__title">Letzte Aktivitäten</h2>
+            </div>
+            <div className="card__body">
+              {recentActivity.length > 0 ? (
+                <ul className="list">
+                  {recentActivity.map(activity => (
+                    <ActivityItem
+                      key={activity.id}
+                      icon={getActivityIcon(activity.type)}
+                      title={activity.message}
+                      subtitle={activity.user}
+                      time={activity.time}
+                    />
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted">Keine Aktivitäten</p>
+              )}
+            </div>
+            <div className="card__footer">
+              <button
+                className="btn btn--secondary btn--sm btn--block"
+                onClick={() => navigate('/protocols')}
+              >
+                Alle Protokolle anzeigen
+                <ArrowRight size={16} />
+              </button>
             </div>
           </div>
-          <div className="card-content">
-            <h3 className="stat-value">{stats.totalCustomers}</h3>
-            <p className="stat-label">Kunden</p>
-            <p className="stat-description">Registrierte Kunden im System</p>
-          </div>
-        </div>
 
-        <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/protocols')}>
-          <div className="card-label">Protokolle Gesamt</div>
-          <div className="card-header">
-            <div className="stat-icon protocols">
-              <FileCheck size={24} />
+          {/* Performance Card */}
+          <div className="card">
+            <div className="card__header">
+              <h2 className="card__title">Performance</h2>
             </div>
-          </div>
-          <div className="card-content">
-            <h3 className="stat-value">{stats.totalProtocols}</h3>
-            <p className="stat-label">Protokolle</p>
-            <p className="stat-description">Alle erstellten Reinigungsprotokolle</p>
-          </div>
-        </div>
-
-        <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/cleaning-logs')}>
-          <div className="card-label">Heute Abgeschlossen</div>
-          <div className="card-header">
-            <div className="stat-icon completed">
-              <CheckCircle size={24} />
-            </div>
-          </div>
-          <div className="card-content">
-            <h3 className="stat-value">{stats.completedToday}</h3>
-            <p className="stat-label">Aufgaben</p>
-            <p className="stat-description">Abgeschlossene Aufgaben heute</p>
-          </div>
-        </div>
-
-        <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/cleaning-logs')}>
-          <div className="card-label">Ausstehende Aufgaben</div>
-          <div className="card-header">
-            <div className="stat-icon pending">
-              <AlertTriangle size={24} />
-            </div>
-          </div>
-          <div className="card-content">
-            <h3 className="stat-value">{stats.pendingTasks}</h3>
-            <p className="stat-label">Offen</p>
-            <p className="stat-description">Noch zu erledigende Protokolle</p>
-          </div>
-        </div>
-
-        <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/workers')}>
-          <div className="card-label">Aktive Mitarbeiter</div>
-          <div className="card-header">
-            <div className="stat-icon workers">
-              <Users size={24} />
-            </div>
-          </div>
-          <div className="card-content">
-            <h3 className="stat-value">{stats.activeWorkers}</h3>
-            <p className="stat-label">Mitarbeiter</p>
-            <p className="stat-description">Registrierte Arbeiter im System</p>
-          </div>
-        </div>
-
-        <div className="stat-card modern-card clickable" onClick={() => handleCardClick('/cleaning-plans')}>
-          <div className="card-label">Reinigungspläne</div>
-          <div className="card-header">
-            <div className="stat-icon plans">
-              <Calendar size={24} />
-            </div>
-          </div>
-          <div className="card-content">
-            <h3 className="stat-value">{stats.cleaningPlans}</h3>
-            <p className="stat-label">Pläne</p>
-            <p className="stat-description">Erstellte Reinigungspläne</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Dashboard Grid Layout */}
-      <div className="dashboard-grid">
-        {/* Quick Actions Panel */}
-        <div className="dashboard-widget quick-actions-widget">
-          <div className="widget-header">
-            <h3 className="widget-title">Schnellaktionen</h3>
-          </div>
-          <div className="quick-actions-grid">
-            <button
-              className="quick-action-btn blue"
-              onClick={() => navigate('/customers')}
-            >
-              <UserPlus size={20} />
-              <span>Neuen Kunden hinzufügen</span>
-              <ArrowRight size={16} className="action-arrow" />
-            </button>
-            <button
-              className="quick-action-btn green"
-              onClick={() => navigate('/cleaning-plans')}
-            >
-              <FileText size={20} />
-              <span>Reinigungsplan erstellen</span>
-              <ArrowRight size={16} className="action-arrow" />
-            </button>
-            <button
-              className="quick-action-btn purple"
-              onClick={() => navigate('/protocols')}
-            >
-              <FileCheck size={20} />
-              <span>Protokoll ansehen</span>
-              <ArrowRight size={16} className="action-arrow" />
-            </button>
-            <button
-              className="quick-action-btn orange"
-              onClick={() => navigate('/workers')}
-            >
-              <Users size={20} />
-              <span>Arbeiter verwalten</span>
-              <ArrowRight size={16} className="action-arrow" />
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Activity Feed */}
-        <div className="dashboard-widget activity-widget">
-          <div className="widget-header">
-            <h3 className="widget-title">Letzte Aktivitäten</h3>
-            <Activity size={20} className="widget-icon" />
-          </div>
-          <div className="activity-feed">
-            {recentActivity.length > 0 ? (
-              recentActivity.map(activity => {
-                const IconComponent = getActivityIcon(activity.type);
-                return (
-                  <div key={activity.id} className="activity-item">
-                    <div className={`activity-icon ${getActivityColor(activity.type)}`}>
-                      <IconComponent size={16} />
-                    </div>
-                    <div className="activity-content">
-                      <p className="activity-message">{activity.message}</p>
-                      <div className="activity-meta">
-                        <span className="activity-user">{activity.user}</span>
-                        <span className="activity-time">{activity.time}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="no-activity">
-                <p>Keine aktuellen Aktivitäten</p>
-              </div>
-            )}
-          </div>
-          <button className="view-all-btn" onClick={() => navigate('/protocols')}>
-            Alle Protokolle anzeigen
-            <ArrowRight size={16} />
-          </button>
-        </div>
-
-        {/* System Overview */}
-        <div className="dashboard-widget overview-widget">
-          <div className="widget-header">
-            <h3 className="widget-title">System Übersicht</h3>
-          </div>
-          <div className="overview-content">
-            <div className="overview-item">
-              <div className="overview-stat">
-                <span className="overview-number">{stats.completionRate}%</span>
-                <span className="overview-label">Abschlussrate</span>
-              </div>
-              <div className="overview-progress">
-                <div className="progress-bar">
+            <div className="card__body" style={{ padding: 'var(--spacing-6)' }}>
+              <div style={{ marginBottom: 'var(--spacing-4)' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: 'var(--spacing-2)',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 'var(--font-weight-semibold)',
+                    }}
+                  >
+                    Abschlussrate
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 'var(--font-weight-bold)',
+                      color: 'var(--color-primary-600)',
+                    }}
+                  >
+                    {stats.completionRate}%
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: '8px',
+                    background: 'var(--color-neutral-200)',
+                    borderRadius: 'var(--radius-full)',
+                    overflow: 'hidden',
+                  }}
+                >
                   <div
-                    className="progress-fill"
-                    style={{width: `${stats.completionRate}%`}}
-                  ></div>
+                    style={{
+                      height: '100%',
+                      width: `${stats.completionRate}%`,
+                      background:
+                        'linear-gradient(90deg, var(--color-primary-600), var(--color-primary-700))',
+                      transition: 'width 0.5s ease',
+                    }}
+                  />
                 </div>
               </div>
-            </div>
 
-            <div className="overview-summary">
-              <p>
-                <strong>{stats.totalProtocols}</strong> Protokolle erstellt<br/>
-                <strong>{stats.pendingTasks}</strong> noch offen<br/>
-                <strong>{stats.completedToday}</strong> heute abgeschlossen
-              </p>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 'var(--spacing-4)',
+                  marginTop: 'var(--spacing-6)',
+                  paddingTop: 'var(--spacing-6)',
+                  borderTop: '1px solid var(--color-neutral-200)',
+                }}
+              >
+                <div>
+                  <p className="text-xs text-muted">Gesamt</p>
+                  <p
+                    style={{
+                      fontSize: 'var(--font-size-2xl)',
+                      fontWeight: 'var(--font-weight-bold)',
+                      color: 'var(--color-neutral-950)',
+                      marginTop: 'var(--spacing-1)',
+                    }}
+                  >
+                    {stats.totalProtocols}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted">Ausstehend</p>
+                  <p
+                    style={{
+                      fontSize: 'var(--font-size-2xl)',
+                      fontWeight: 'var(--font-weight-bold)',
+                      color: 'var(--color-warning)',
+                      marginTop: 'var(--spacing-1)',
+                    }}
+                  >
+                    {stats.pendingTasks}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

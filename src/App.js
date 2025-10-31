@@ -17,6 +17,10 @@ import WorkerLogin from './pages/auth/WorkerLogin';
 import WorkerDashboard from './pages/dashboard/WorkerDashboard';
 import CustomerLogin from './pages/auth/CustomerLogin';
 import CustomerDashboard from './pages/dashboard/CustomerDashboard';
+import Profile from './pages/settings/Profile';
+import AccountSettings from './pages/settings/AccountSettings';
+import SystemSettings from './pages/settings/SystemSettings';
+import NotificationsPage from './pages/settings/NotificationsPage';
 
 // Import CSS for new components
 import './components/layout/ProfessionalHeader.css';
@@ -207,6 +211,10 @@ function App() {
                 <Route path="/cleaning-logs" element={<CleaningLogsPage />} />
                 <Route path="/protocols" element={<Protocols />} />
                 <Route path="/workers" element={<WorkersPage />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/account-settings" element={<AccountSettings />} />
+                <Route path="/system-settings" element={<SystemSettings />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </main>
