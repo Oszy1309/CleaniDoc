@@ -117,8 +117,8 @@ function Login({ setUser }) {
         <div className="login-form-section">
           <div className="login-glass-card">
             <div className="login-header">
-              <h2>Admin Dashboard</h2>
-              <p>Willkommen zurück! Melden Sie sich an, um fortzufahren.</p>
+              <h2>Admin Dashboard v2.0</h2>
+              <p>Willkommen zurück! Professionelles Dashboard ist jetzt verfügbar.</p>
             </div>
 
             <form onSubmit={handleLogin} className="modern-login-form">
