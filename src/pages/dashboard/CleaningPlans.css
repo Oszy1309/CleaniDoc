@@ -13,17 +13,25 @@
   border-bottom: 2px solid #e5e7eb;
 }
 
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .header-content h1 {
-  margin: 0 0 8px 0;
+  margin: 0;
   color: #1f2937;
   font-size: 2.5rem;
   font-weight: 700;
+  display: block;
 }
 
 .header-content .subtitle {
   margin: 0;
   color: #6b7280;
   font-size: 1.1rem;
+  display: block;
 }
 
 .btn-primary {

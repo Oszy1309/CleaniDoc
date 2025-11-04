@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+import { Bell, Settings, LogOut, User, ChevronDown, Eye } from 'lucide-react';
 // import { EnhancedNotificationsDropdown, EnhancedSettingsDropdown, EnhancedUserDropdown } from './EnhancedHeaderDropdowns';
 
-function ProfessionalHeader({ onLogout, userEmail, userRole }) {
+function ProfessionalHeader({ onLogout, userEmail, userRole, onViewAs, viewAsRole }) {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showViewAs, setShowViewAs] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
 
   // Echte Benachrichtigungen simulieren (später durch Supabase ersetzen)
@@ -50,6 +51,7 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
         setShowNotifications(false);
         setShowSettings(false);
         setShowUserMenu(false);
+        setShowViewAs(false);
       }
     };
 
@@ -145,6 +147,60 @@ function ProfessionalHeader({ onLogout, userEmail, userRole }) {
               </div>
             )}
           </div>
+
+          {/* VIEW AS BUTTON */}
+          {onViewAs && (
+            <div className="header__dropdown">
+              <button
+                className={`header__icon-btn ${viewAsRole ? 'header__icon-btn--active' : ''}`}
+                onClick={() => setShowViewAs(!showViewAs)}
+                title={viewAsRole ? `Zeige als: ${viewAsRole}` : 'Als andere Rolle ansehen'}
+              >
+                <Eye size={20} />
+                {viewAsRole && <span className="header__view-as-badge">{viewAsRole.charAt(0).toUpperCase()}</span>}
+              </button>
+
+              {showViewAs && (
+                <div className="dropdown">
+                  <div className="dropdown__header">
+                    <h3 className="dropdown__title">Ansicht wechseln</h3>
+                  </div>
+                  <div className="dropdown__content">
+                    <button
+                      className={`dropdown__item ${viewAsRole === null ? 'dropdown__item--active' : ''}`}
+                      onClick={() => {
+                        onViewAs(null);
+                        setShowViewAs(false);
+                      }}
+                    >
+                      <User size={16} />
+                      <span>Admin-Ansicht</span>
+                    </button>
+                    <button
+                      className={`dropdown__item ${viewAsRole === 'worker' ? 'dropdown__item--active' : ''}`}
+                      onClick={() => {
+                        onViewAs('worker');
+                        setShowViewAs(false);
+                      }}
+                    >
+                      <Eye size={16} />
+                      <span>Mitarbeiter-Ansicht</span>
+                    </button>
+                    <button
+                      className={`dropdown__item ${viewAsRole === 'customer' ? 'dropdown__item--active' : ''}`}
+                      onClick={() => {
+                        onViewAs('customer');
+                        setShowViewAs(false);
+                      }}
+                    >
+                      <Eye size={16} />
+                      <span>Kunden-Ansicht</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* EINSTELLUNGEN-BUTTON */}
           <div className="header__dropdown">

@@ -34,6 +34,7 @@ function App() {
   const [userRole, setUserRole] = useState('admin'); // Default role for admin area
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [viewAsRole, setViewAsRole] = useState(null); // Admin can view as worker/customer
 
   useEffect(() => {
     // Check ob Benutzer bereits eingeloggt ist
@@ -154,6 +155,14 @@ function App() {
     setSidebarCollapsed(collapsed);
   };
 
+  const handleViewAs = role => {
+    if (role === 'worker' || role === 'customer') {
+      setViewAsRole(role);
+    } else {
+      setViewAsRole(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -171,6 +180,23 @@ function App() {
           <Route path="/worker-login" element={<WorkerLogin setUser={setUser} />} />
           <Route path="/customer-login" element={<CustomerLogin setUser={setUser} />} />
           <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      ) : viewAsRole === 'worker' ? (
+        // Admin viewing as Worker
+        <Routes>
+          <Route path="/" element={<WorkerDashboard isPreview={true} onBackToAdmin={() => setViewAsRole(null)} />} />
+          <Route path="/worker-dashboard" element={<WorkerDashboard isPreview={true} onBackToAdmin={() => setViewAsRole(null)} />} />
+          <Route path="*" element={<Navigate to="/worker-dashboard" />} />
+        </Routes>
+      ) : viewAsRole === 'customer' ? (
+        // Admin viewing as Customer
+        <Routes>
+          <Route path="/" element={<CustomerDashboard user={user} onLogout={() => setViewAsRole(null)} isPreview={true} />} />
+          <Route
+            path="/customer-dashboard"
+            element={<CustomerDashboard user={user} onLogout={() => setViewAsRole(null)} isPreview={true} />}
+          />
+          <Route path="*" element={<Navigate to="/customer-dashboard" />} />
         </Routes>
       ) : user.isCustomer ? (
         <Routes>
@@ -201,6 +227,8 @@ function App() {
               onLogout={handleLogout}
               userEmail={user.email}
               userRole={userRole}
+              onViewAs={handleViewAs}
+              viewAsRole={viewAsRole}
             />
 
             <main className="app-content">

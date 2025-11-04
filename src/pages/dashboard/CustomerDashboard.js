@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import './CustomerDashboard.css';
 
-function CustomerDashboard({ user, onLogout }) {
+function CustomerDashboard({ user, onLogout, isPreview = false }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 

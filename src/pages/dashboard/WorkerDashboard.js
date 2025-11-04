@@ -5,7 +5,7 @@ import { LogOut, CheckCircle, Clock } from 'lucide-react';
 import WorkerLogDetail from '../../components/features/WorkerLogDetail';
 import './WorkerDashboard.css';
 
-function WorkerDashboard() {
+function WorkerDashboard({ isPreview = false, onBackToAdmin }) {
   const navigate = useNavigate();
   const [worker, setWorker] = useState(null);
   const [myLogs, setMyLogs] = useState([]);
@@ -86,6 +86,10 @@ function WorkerDashboard() {
   }, [fetchWorkerAndLogs]);
 
   const handleLogout = async () => {
+    if (isPreview && onBackToAdmin) {
+      onBackToAdmin();
+      return;
+    }
     try {
       await supabase.auth.signOut();
       navigate('/worker-login');
