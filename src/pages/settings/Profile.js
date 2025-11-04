@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Camera, Save, Edit3 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Camera, Save, Edit3, Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import './Profile.css';
 
@@ -17,6 +17,18 @@ function Profile() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -112,6 +124,70 @@ function Profile() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handlePasswordChange = async e => {
+    e.preventDefault();
+
+    // Validation
+    if (!passwordForm.currentPassword) {
+      setMessage('Bitte geben Sie Ihr aktuelles Passwort ein');
+      return;
+    }
+
+    if (!passwordForm.newPassword) {
+      setMessage('Bitte geben Sie ein neues Passwort ein');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 8) {
+      setMessage('Neues Passwort muss mindestens 8 Zeichen lang sein');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setMessage('Passwörter stimmen nicht überein');
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      setMessage('');
+
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: profile.email,
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || 'Passwortänderung fehlgeschlagen');
+        return;
+      }
+
+      setMessage('Passwort erfolgreich geändert');
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+      setShowPasswordForm(false);
+
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Password change error:', error);
+      setMessage('Fehler beim Ändern des Passworts');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const getUserInitials = () => {
@@ -278,6 +354,147 @@ function Profile() {
               </div>
             )}
           </form>
+
+          {/* PASSWORD CHANGE SECTION */}
+          <div className="form-section password-section">
+            <div className="section-header">
+              <h3>
+                <Lock size={18} />
+                Passwort ändern
+              </h3>
+              <button
+                type="button"
+                className="edit-toggle-btn"
+                onClick={() => setShowPasswordForm(!showPasswordForm)}
+              >
+                <Edit3 size={16} />
+                {showPasswordForm ? 'Abbrechen' : 'Passwort ändern'}
+              </button>
+            </div>
+
+            {showPasswordForm && (
+              <form onSubmit={handlePasswordChange} className="password-form">
+                <div className="form-group">
+                  <label htmlFor="current_password">
+                    <Lock size={16} />
+                    Aktuelles Passwort
+                  </label>
+                  <div className="password-input-wrapper">
+                    <input
+                      id="current_password"
+                      type={showPasswords.current ? 'text' : 'password'}
+                      value={passwordForm.currentPassword}
+                      onChange={e =>
+                        setPasswordForm(prev => ({
+                          ...prev,
+                          currentPassword: e.target.value,
+                        }))
+                      }
+                      placeholder="Aktuelles Passwort eingeben"
+                      disabled={passwordLoading}
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password-btn"
+                      onClick={() =>
+                        setShowPasswords(prev => ({
+                          ...prev,
+                          current: !prev.current,
+                        }))
+                      }
+                      tabIndex={-1}
+                    >
+                      {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="new_password">
+                    <Lock size={16} />
+                    Neues Passwort (mind. 8 Zeichen)
+                  </label>
+                  <div className="password-input-wrapper">
+                    <input
+                      id="new_password"
+                      type={showPasswords.new ? 'text' : 'password'}
+                      value={passwordForm.newPassword}
+                      onChange={e =>
+                        setPasswordForm(prev => ({
+                          ...prev,
+                          newPassword: e.target.value,
+                        }))
+                      }
+                      placeholder="Neues Passwort eingeben"
+                      disabled={passwordLoading}
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password-btn"
+                      onClick={() =>
+                        setShowPasswords(prev => ({
+                          ...prev,
+                          new: !prev.new,
+                        }))
+                      }
+                      tabIndex={-1}
+                    >
+                      {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirm_password">
+                    <Lock size={16} />
+                    Passwort wiederholen
+                  </label>
+                  <div className="password-input-wrapper">
+                    <input
+                      id="confirm_password"
+                      type={showPasswords.confirm ? 'text' : 'password'}
+                      value={passwordForm.confirmPassword}
+                      onChange={e =>
+                        setPasswordForm(prev => ({
+                          ...prev,
+                          confirmPassword: e.target.value,
+                        }))
+                      }
+                      placeholder="Passwort wiederholen"
+                      disabled={passwordLoading}
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password-btn"
+                      onClick={() =>
+                        setShowPasswords(prev => ({
+                          ...prev,
+                          confirm: !prev.confirm,
+                        }))
+                      }
+                      tabIndex={-1}
+                    >
+                      {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="password-security-info">
+                  <small>
+                    Sicheres Passwort: mind. 8 Zeichen, mit Großbuchstaben, Kleinbuchstaben und
+                    Zahlen
+                  </small>
+                </div>
+
+                <div className="form-actions">
+                  <button type="submit" className="save-btn" disabled={passwordLoading}>
+                    <Save size={16} />
+                    {passwordLoading ? 'Wird geändert...' : 'Passwort ändern'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </div>

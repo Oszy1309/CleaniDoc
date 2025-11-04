@@ -502,6 +502,80 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/auth/change-password
+ * Change password for authenticated user
+ */
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    const { email, currentPassword, newPassword } = req.body;
+
+    if (!email || !currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, aktuelles und neues Passwort sind erforderlich',
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Neues Passwort muss mindestens 8 Zeichen lang sein',
+      });
+    }
+
+    // Get user from Supabase
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (userError || !user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Benutzer nicht gefunden',
+      });
+    }
+
+    // Verify current password
+    const passwordMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!passwordMatch) {
+      await logAuditEvent(user.id, email, 'PASSWORD_CHANGE_FAILED', { reason: 'INVALID_PASSWORD' });
+      return res.status(401).json({
+        success: false,
+        message: 'Aktuelles Passwort ist incorrect',
+      });
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password in database
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ password_hash: hashedNewPassword })
+      .eq('id', user.id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    await logAuditEvent(user.id, email, 'PASSWORD_CHANGED');
+
+    res.json({
+      success: true,
+      message: 'Passwort erfolgreich geändert',
+    });
+  } catch (error) {
+    console.error('change-password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Passwortänderung fehlgeschlagen',
+    });
+  }
+});
+
 // ===== ERROR HANDLER =====
 app.use((error, req, res, next) => {
   console.error('Server Error:', error);
