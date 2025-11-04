@@ -15,15 +15,16 @@ require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
 // ===== INITIALIZE SUPABASE =====
-// Load from environment or hardcode for development
 // Use Service Role Key for backend operations
-const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'https://mfzvuzwxkfbsogqdnnry.supabase.co';
-const SUPABASE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1menZ1end4a2Zic29ncWRubnJ5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDYwNjU4NSwiZXhwIjoyMDc2MTgyNTg1fQ.U6KkLrSVUqietF6DyF84q9gyoy5xphoSVnO8IRv-xxs';
+// WICHTIG: Diese Keys MÜSSEN als Environment Variablen in Vercel gesetzt sein!
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error('❌ Missing Supabase credentials');
+  console.error('   Bitte folgende Environment Variablen in Vercel/local setzen:');
+  console.error('   - REACT_APP_SUPABASE_URL');
+  console.error('   - SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
 }
 
@@ -51,8 +52,14 @@ app.use((req, res, next) => {
 });
 
 // ===== ENVIRONMENT VARIABLES =====
-const JWT_SECRET = process.env.REACT_APP_JWT_SECRET || 'dev-secret-key';
-const JWT_REFRESH_SECRET = process.env.REACT_APP_JWT_REFRESH_SECRET || 'dev-refresh-secret';
+const JWT_SECRET = process.env.REACT_APP_JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.REACT_APP_JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+  console.warn('⚠️  JWT Secrets nicht gesetzt - verwende Development Values (NICHT für Production!)');
+  if (!JWT_SECRET) process.env.REACT_APP_JWT_SECRET = 'dev-secret-key';
+  if (!JWT_REFRESH_SECRET) process.env.REACT_APP_JWT_REFRESH_SECRET = 'dev-refresh-secret';
+}
 
 // ===== HELPER FUNCTIONS =====
 
