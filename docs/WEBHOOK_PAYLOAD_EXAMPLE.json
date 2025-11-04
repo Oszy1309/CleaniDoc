@@ -1,0 +1,112 @@
+{
+  "event": "daily_export_completed",
+  "version": "1.0",
+  "timestamp": "2025-10-31T18:30:00Z",
+  "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+  "export_id": "exp_6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "report_date": "2025-10-31",
+
+  "summary": {
+    "total_logs": 12,
+    "completed_logs": 11,
+    "failed_logs": 1,
+    "total_steps": 156,
+    "total_photos": 23,
+    "total_size_bytes": 2847392
+  },
+
+  "files": {
+    "pdf_report": {
+      "filename": "cleandoc_daily_report_2025-10-31.pdf",
+      "size_bytes": 1204567,
+      "sha256": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+      "download_url": "https://storage.cleanidoc.de/presigned/pdf/abc123?expires=1730483400",
+      "expires_at": "2025-11-01T18:30:00Z"
+    },
+
+    "csv_logs": {
+      "filename": "cleandoc_logs_2025-10-31_v1.csv",
+      "size_bytes": 8453,
+      "sha256": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+      "download_url": "https://storage.cleanidoc.de/presigned/csv/def456?expires=1730483400",
+      "expires_at": "2025-11-01T18:30:00Z"
+    },
+
+    "csv_steps": {
+      "filename": "cleandoc_log_steps_2025-10-31_v1.csv",
+      "size_bytes": 24891,
+      "sha256": "6c4c37d3b3e4f7c4de2a3b4e8f9c8b7a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s",
+      "download_url": "https://storage.cleanidoc.de/presigned/csv/ghi789?expires=1730483400",
+      "expires_at": "2025-11-01T18:30:00Z"
+    },
+
+    "csv_photos": {
+      "filename": "cleandoc_log_photos_2025-10-31_v1.csv",
+      "size_bytes": 3214,
+      "sha256": "8e4f6a9c2d1b5e7h3i6j0k4l8m9n2o5p7q1r4s6t9u2v5w8x1y4z7a0b3c6d9e2f",
+      "download_url": "https://storage.cleanidoc.de/presigned/csv/jkl012?expires=1730483400",
+      "expires_at": "2025-11-01T18:30:00Z"
+    },
+
+    "manifest": {
+      "filename": "cleandoc_manifest_2025-10-31.json",
+      "size_bytes": 1876,
+      "sha256": "5f8e2a4c7d1b9e6h2i5j8k1l4m7n0o3p6q9r2s5t8u1v4w7x0y3z6a9b2c5d8e1f",
+      "download_url": "https://storage.cleanidoc.de/presigned/manifest/mno345?expires=1730483400",
+      "expires_at": "2025-11-01T18:30:00Z"
+    },
+
+    "checksums": {
+      "filename": "cleandoc_checksums_2025-10-31.txt",
+      "size_bytes": 456,
+      "sha256": "2e5b8a1d4g7j0m3p6s9v2y5b8e1h4k7n0q3t6w9z2c5f8i1l4o7r0u3x6a9d2g5j",
+      "download_url": "https://storage.cleanidoc.de/presigned/checksums/pqr678?expires=1730483400",
+      "expires_at": "2025-11-01T18:30:00Z"
+    },
+
+    "archive_zip": {
+      "filename": "cleandoc_export_2025-10-31.zip",
+      "size_bytes": 2847392,
+      "sha256": "7c0f3e6i9l2o5r8u1x4a7d0g3j6m9p2s5v8y1b4e7h0k3n6q9t2w5z8c1f4i7l0o",
+      "download_url": "https://storage.cleanidoc.de/presigned/zip/stu901?expires=1730483400",
+      "expires_at": "2025-11-01T18:30:00Z"
+    }
+  },
+
+  "tenant_info": {
+    "company_name": "Bäckerei Schmidt GmbH",
+    "location": "Hauptstraße 123, 12345 Musterstadt"
+  },
+
+  "delivery_status": {
+    "email_sent": true,
+    "email_sent_at": "2025-10-31T18:25:00Z",
+    "email_recipients": ["qa@baeckerei-schmidt.de", "leitung@baeckerei-schmidt.de"],
+    "sftp_uploaded": false,
+    "sftp_error": null
+  },
+
+  "quality_metrics": {
+    "pdf_pages": 15,
+    "csv_schema_version": "v1.0",
+    "data_completeness_percent": 98.7,
+    "photo_documentation_percent": 92.3
+  },
+
+  "compliance": {
+    "haccp_requirements_met": true,
+    "signature_count": {
+      "shift_leader": 1,
+      "client_representative": 1
+    },
+    "audit_trail_complete": true,
+    "retention_expires_at": "2027-10-31T23:59:59Z"
+  },
+
+  "metadata": {
+    "export_generated_by": "cleanidoc-system",
+    "export_version": "2.0.1",
+    "processing_time_ms": 3456,
+    "region": "eu-central-1"
+  }
+}

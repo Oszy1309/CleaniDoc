@@ -2,6 +2,108 @@
   max-width: 900px;
 }
 
+/* Enhanced Step Styles für Photo Upload */
+.step-item.expanded {
+  background: #f8faff;
+  border: 2px solid #e2e8f0;
+}
+
+.step-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+
+.step-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.btn-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #667eea;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: #764ba2;
+  transform: translateY(-1px);
+}
+
+.photo-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #f56565;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-photos {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Migration Error Styles */
+.migration-error {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff5f5;
+  border: 1px solid #feb2b2;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.migration-error h3 {
+  color: #c53030;
+  margin-bottom: 1rem;
+}
+
+.migration-error p {
+  color: #718096;
+  margin-bottom: 0.5rem;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #764ba2;
+  transform: translateY(-1px);
+}
+
 .btn-back {
   background: none;
   border: none;

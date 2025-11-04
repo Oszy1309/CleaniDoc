@@ -21,12 +21,56 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
 }
 
 .date-picker {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.photo-upload-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8faff;
+  transition: all 0.2s ease;
+}
+
+.photo-upload-toggle:hover {
+  background: #edf2ff;
+  border-color: #667eea;
+}
+
+.photo-upload-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.photo-upload-toggle input[type='checkbox'] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.photo-upload-toggle.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.photo-upload-toggle.active label {
+  color: white;
 }
 
 .date-picker label {

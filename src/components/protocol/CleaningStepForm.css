@@ -1,0 +1,302 @@
+/* Cleaning Step Form Styles */
+
+.cleaning-step-form {
+  margin-bottom: var(--spacing-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  transition: all var(--transition-base);
+}
+
+/* Status-specific styling */
+.cleaning-step-form--pending {
+  border-left: 4px solid var(--color-text-secondary);
+}
+
+.cleaning-step-form--in_progress {
+  border-left: 4px solid var(--color-warning);
+  box-shadow: var(--shadow-sm);
+}
+
+.cleaning-step-form--completed {
+  border-left: 4px solid var(--color-success);
+  background: var(--color-success-light);
+}
+
+.cleaning-step-form--failed {
+  border-left: 4px solid var(--color-error);
+  background: var(--color-error-light);
+}
+
+/* Header */
+.cleaning-step-form__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.cleaning-step-form__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.cleaning-step-form__title h4 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.cleaning-step-form__actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+/* Content */
+.cleaning-step-form__content {
+  padding: var(--spacing-4);
+}
+
+.cleaning-step-form__info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+/* Form Fields */
+.cleaning-step-form__field {
+  margin-bottom: var(--spacing-3);
+}
+
+.cleaning-step-form__field label {
+  display: block;
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-base);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 1px var(--color-primary-500);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Status Controls */
+.cleaning-step-form__status {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.cleaning-step-form__status label {
+  display: block;
+  margin-bottom: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.cleaning-step-form__status-buttons {
+  display: flex;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+}
+
+/* Button Variants */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-2) var(--spacing-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-500);
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-primary-600);
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--sm {
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-xs);
+}
+
+.btn--secondary {
+  background: var(--color-bg-primary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-600);
+}
+
+.btn--warning {
+  background: var(--color-warning);
+  color: white;
+}
+
+.btn--warning:hover:not(:disabled) {
+  background: var(--color-warning-dark);
+}
+
+.btn--success {
+  background: var(--color-success);
+  color: white;
+}
+
+.btn--success:hover:not(:disabled) {
+  background: var(--color-success-dark);
+}
+
+.btn--error {
+  background: var(--color-error);
+  color: white;
+}
+
+.btn--error:hover:not(:disabled) {
+  background: var(--color-error-dark);
+}
+
+.btn--link {
+  background: transparent;
+  border: none;
+  color: var(--color-primary-500);
+  padding: var(--spacing-1);
+}
+
+.btn--link:hover:not(:disabled) {
+  color: var(--color-primary-600);
+  text-decoration: underline;
+  transform: none;
+}
+
+/* Completion Info */
+.cleaning-step-form__completion {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-success-light);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-sm);
+  color: var(--color-success-dark);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Photo Summary */
+.cleaning-step-form__photo-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Text Color Utilities */
+.text-success {
+  color: var(--color-success);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.text-muted {
+  color: var(--color-text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .cleaning-step-form__header {
+    flex-direction: column;
+    gap: var(--spacing-2);
+    align-items: flex-start;
+  }
+
+  .cleaning-step-form__info {
+    grid-template-columns: 1fr;
+  }
+
+  .cleaning-step-form__status-buttons {
+    justify-content: stretch;
+  }
+
+  .cleaning-step-form__status-buttons .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .cleaning-step-form__photo-summary {
+    flex-direction: column;
+    gap: var(--spacing-2);
+    align-items: flex-start;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .cleaning-step-form {
+    break-inside: avoid;
+    border: 1px solid #000;
+    margin-bottom: 1rem;
+  }
+
+  .cleaning-step-form__actions,
+  .cleaning-step-form__status-buttons {
+    display: none;
+  }
+
+  .cleaning-step-form__content {
+    padding: 0.5rem;
+  }
+}

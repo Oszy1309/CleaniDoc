@@ -74,7 +74,7 @@ function Dashboard() {
         // Reinigungspläne
         supabase.from('cleaning_plans').select('*', { count: 'exact', head: true }),
 
-        // Letzte 5 Protokolle für Activity Feed
+        // Letzte 10 Protokolle für Activity Feed (increased from 5)
         supabase
           .from('cleaning_logs')
           .select(
@@ -88,7 +88,7 @@ function Dashboard() {
           `
           )
           .order('created_at', { ascending: false })
-          .limit(5),
+          .limit(10),
       ]);
 
       // Berechne echte Completion Rate

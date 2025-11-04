@@ -1,0 +1,527 @@
+/* ============================================================================
+   HACCP PDF GENERATION - PRINT STYLES
+   Optimiert für A4, professionelle Reinigungsprotokolle
+   ============================================================================ */
+
+/* Page Setup */
+@page {
+  size: A4;
+  margin: 12mm 15mm 14mm 15mm;
+
+  @top-center {
+    content: 'CleaniDoc HACCP-Protokoll';
+    font-family: var(--font-family-base);
+    font-size: 10pt;
+    color: #666;
+  }
+
+  @bottom-right {
+    content: 'Seite ' counter(page) ' von ' counter(pages);
+    font-family: var(--font-family-base);
+    font-size: 9pt;
+    color: #666;
+  }
+}
+
+/* Print Media Queries */
+@media print {
+  /* Reset & Base */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    font-size: 10pt;
+    line-height: 1.4;
+    color: #000;
+    background: white;
+  }
+
+  /* Page Container */
+  .pdf-container {
+    width: 190mm;
+    margin: 0 auto;
+    background: white;
+    font-family: var(--font-family-base), 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  /* Hide UI Elements */
+  .no-print,
+  .btn,
+  .header,
+  .sidebar,
+  .navigation,
+  .controls,
+  button,
+  input[type='button'],
+  .page-actions {
+    display: none !important;
+  }
+
+  /* Page Breaking */
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .no-page-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Prevent Breaking */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  table,
+  tr,
+  td,
+  th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .signature-block,
+  .protocol-step,
+  .photo-grid,
+  .summary-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Table Headers Repeat */
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* ============================================================================
+     PDF DOCUMENT STRUCTURE
+     ============================================================================ */
+
+  /* Header Section */
+  .pdf-header {
+    margin-bottom: 20pt;
+    padding-bottom: 10pt;
+    border-bottom: 2pt solid #1e40af;
+  }
+
+  .pdf-logo {
+    float: left;
+    width: 60pt;
+    height: 60pt;
+  }
+
+  .pdf-company-info {
+    margin-left: 70pt;
+    padding-top: 5pt;
+  }
+
+  .pdf-title {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #1e40af;
+    margin: 0 0 5pt 0;
+  }
+
+  .pdf-subtitle {
+    font-size: 12pt;
+    color: #666;
+    margin: 0;
+  }
+
+  .pdf-date-info {
+    float: right;
+    text-align: right;
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* Clear float */
+  .pdf-header::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
+  /* Meta Information Grid */
+  .pdf-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15pt;
+    margin: 15pt 0;
+    padding: 10pt;
+    background: #f8fafc;
+    border: 1pt solid #e2e8f0;
+  }
+
+  .pdf-meta-item {
+    margin-bottom: 8pt;
+  }
+
+  .pdf-meta-label {
+    font-weight: bold;
+    font-size: 8pt;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    margin-bottom: 2pt;
+  }
+
+  .pdf-meta-value {
+    font-size: 10pt;
+    color: #000;
+  }
+
+  /* Protocol Steps */
+  .pdf-protocol-section {
+    margin: 20pt 0;
+  }
+
+  .pdf-section-title {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #1e40af;
+    margin: 15pt 0 10pt 0;
+    padding-bottom: 5pt;
+    border-bottom: 1pt solid #e2e8f0;
+  }
+
+  .pdf-step-container {
+    margin-bottom: 15pt;
+    padding: 8pt;
+    border: 1pt solid #e2e8f0;
+    background: white;
+  }
+
+  .pdf-step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8pt;
+    padding-bottom: 5pt;
+    border-bottom: 1pt dotted #cbd5e1;
+  }
+
+  .pdf-step-number {
+    display: inline-block;
+    width: 20pt;
+    height: 20pt;
+    line-height: 20pt;
+    text-align: center;
+    background: #1e40af;
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 9pt;
+  }
+
+  .pdf-step-name {
+    font-weight: bold;
+    font-size: 11pt;
+    margin-left: 8pt;
+  }
+
+  .pdf-step-status {
+    padding: 2pt 6pt;
+    border-radius: 3pt;
+    font-size: 8pt;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .pdf-step-status.completed {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .pdf-step-status.failed {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  .pdf-step-status.skipped {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  .pdf-step-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt;
+    margin-top: 8pt;
+  }
+
+  .pdf-step-chemical {
+    font-size: 9pt;
+  }
+
+  .pdf-step-chemical-label {
+    font-weight: bold;
+    color: #64748b;
+  }
+
+  .pdf-step-time {
+    font-size: 9pt;
+    text-align: right;
+  }
+
+  .pdf-step-notes {
+    grid-column: 1 / -1;
+    margin-top: 5pt;
+    padding: 5pt;
+    background: #f8fafc;
+    font-size: 9pt;
+    font-style: italic;
+  }
+
+  /* Photo Documentation */
+  .pdf-photo-section {
+    margin: 10pt 0;
+  }
+
+  .pdf-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8pt;
+    margin-top: 8pt;
+  }
+
+  .pdf-photo-item {
+    text-align: center;
+  }
+
+  .pdf-photo-thumbnail {
+    width: 100%;
+    max-width: 50pt;
+    height: auto;
+    border: 1pt solid #e2e8f0;
+    border-radius: 2pt;
+  }
+
+  .pdf-photo-caption {
+    font-size: 7pt;
+    color: #64748b;
+    margin-top: 2pt;
+  }
+
+  /* Summary Tables */
+  .pdf-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10pt 0;
+    font-size: 9pt;
+  }
+
+  .pdf-summary-table th {
+    background: #f1f5f9;
+    color: #374151;
+    font-weight: bold;
+    padding: 6pt 8pt;
+    text-align: left;
+    border: 1pt solid #d1d5db;
+  }
+
+  .pdf-summary-table td {
+    padding: 6pt 8pt;
+    border: 1pt solid #d1d5db;
+    vertical-align: top;
+  }
+
+  .pdf-summary-table tr:nth-child(even) {
+    background: #f9fafb;
+  }
+
+  /* Signature Section */
+  .pdf-signatures {
+    margin-top: 30pt;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .pdf-signature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20pt;
+    margin-top: 15pt;
+  }
+
+  .pdf-signature-block {
+    border: 1pt solid #e2e8f0;
+    padding: 15pt;
+    background: #f8fafc;
+  }
+
+  .pdf-signature-role {
+    font-weight: bold;
+    font-size: 10pt;
+    color: #1e40af;
+    margin-bottom: 10pt;
+  }
+
+  .pdf-signature-line {
+    border-bottom: 1pt solid #000;
+    height: 30pt;
+    margin: 10pt 0;
+    position: relative;
+  }
+
+  .pdf-signature-info {
+    font-size: 8pt;
+    color: #64748b;
+    margin-top: 5pt;
+  }
+
+  .pdf-signature-date {
+    margin-top: 10pt;
+    font-size: 8pt;
+  }
+
+  /* Quality Assurance */
+  .pdf-qa-section {
+    margin-top: 25pt;
+    padding: 10pt;
+    background: #eff6ff;
+    border: 1pt solid #3b82f6;
+  }
+
+  .pdf-qa-title {
+    font-weight: bold;
+    color: #1e40af;
+    margin-bottom: 8pt;
+  }
+
+  .pdf-qa-checkpoints {
+    font-size: 9pt;
+    line-height: 1.6;
+  }
+
+  .pdf-qa-checkpoint {
+    margin-bottom: 3pt;
+  }
+
+  .pdf-qa-checkbox {
+    display: inline-block;
+    width: 8pt;
+    height: 8pt;
+    border: 1pt solid #000;
+    margin-right: 5pt;
+    vertical-align: baseline;
+  }
+
+  .pdf-qa-checkbox.checked::after {
+    content: '✓';
+    font-size: 7pt;
+    font-weight: bold;
+  }
+
+  /* Footer Information */
+  .pdf-footer {
+    margin-top: 20pt;
+    padding-top: 10pt;
+    border-top: 1pt solid #e2e8f0;
+    font-size: 8pt;
+    color: #64748b;
+    text-align: center;
+  }
+
+  .pdf-compliance-info {
+    margin-bottom: 5pt;
+  }
+
+  .pdf-export-info {
+    font-style: italic;
+  }
+
+  /* ============================================================================
+     RESPONSIVE ADJUSTMENTS FÜR KLEINERE FORMATE
+     ============================================================================ */
+
+  @page :first {
+    margin-top: 20mm;
+  }
+
+  /* Letzte Seite extra Platz für Signaturen */
+  .pdf-signatures {
+    min-height: 80pt;
+  }
+
+  /* Verhindere verwaiste Zeilen */
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Listen */
+  ul,
+  ol {
+    padding-left: 12pt;
+  }
+
+  li {
+    margin-bottom: 2pt;
+  }
+
+  /* Links (falls vorhanden) */
+  a {
+    color: #1e40af;
+    text-decoration: none;
+  }
+
+  a::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    color: #64748b;
+  }
+}
+
+/* ============================================================================
+   SCREEN PREVIEW (für Development)
+   ============================================================================ */
+
+@media screen {
+  .pdf-container {
+    max-width: 210mm;
+    margin: 20px auto;
+    padding: 15mm;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+  }
+
+  .pdf-preview-note {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #fef3c7;
+    color: #d97706;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 1000;
+  }
+}

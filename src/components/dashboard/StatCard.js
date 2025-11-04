@@ -18,16 +18,20 @@ const StatCard = ({
     tabIndex={0}
     aria-label={`${label}: ${value} ${unit}`}
   >
-    <div className="stat-card__header">
-      <span className="stat-card__label">{label}</span>
+    <div className="stat-card__container">
       <div className="stat-card__icon">
         {isLoading ? <RefreshCw size={20} className="animate-spin" /> : <Icon size={20} />}
       </div>
-    </div>
-    <div className="stat-card__body">
-      <div className="stat-card__value">{value}</div>
-      <div className="stat-card__unit">{unit}</div>
-      <div className="stat-card__description">{description}</div>
+      <div className="stat-card__content">
+        <div className="stat-card__header">
+          <span className="stat-card__label">{label}</span>
+        </div>
+        <div className="stat-card__body">
+          <div className="stat-card__value">{value}</div>
+          <div className="stat-card__unit">{unit}</div>
+          <div className="stat-card__description">{description}</div>
+        </div>
+      </div>
     </div>
   </div>
 );

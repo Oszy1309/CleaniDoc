@@ -21,6 +21,7 @@ import Profile from './pages/settings/Profile';
 import AccountSettings from './pages/settings/AccountSettings';
 import SystemSettings from './pages/settings/SystemSettings';
 import NotificationsPage from './pages/settings/NotificationsPage';
+import ExportArchive from './pages/exports/ExportArchive';
 
 // Import CSS for new components
 import './components/layout/ProfessionalHeader.css';
@@ -215,6 +216,7 @@ function App() {
                 <Route path="/account-settings" element={<AccountSettings />} />
                 <Route path="/system-settings" element={<SystemSettings />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/exports" element={<ExportArchive />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </main>

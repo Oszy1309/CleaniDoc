@@ -6,6 +6,7 @@ import {
   FileText,
   ClipboardList,
   CheckSquare,
+  Archive,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -36,6 +37,7 @@ function ModernSidebar({ onLogout, userRole = 'admin', onToggle }) {
       },
       { path: '/workers', icon: Users, label: 'Arbeiter', roles: ['admin', 'manager'] },
       { path: '/protocols', icon: CheckSquare, label: 'Protokolle', roles: ['admin', 'manager'] },
+      { path: '/exports', icon: Archive, label: 'Export-Archiv', roles: ['admin', 'manager'] },
     ];
 
     return allItems.filter(item => item.roles.includes(userRole));

@@ -60,8 +60,6 @@
    ============================================================================ */
 
 .stat-card {
-  display: grid;
-  grid-template-rows: auto auto;
   background: var(--color-neutral-white);
   border: var(--border-1) solid var(--color-neutral-300);
   border-radius: var(--radius-lg);
@@ -94,10 +92,32 @@
   opacity: 1;
 }
 
-.stat-card__header {
+.stat-card__container {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  gap: var(--spacing-4);
+}
+
+.stat-card__icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+  color: var(--color-neutral-white);
+  flex-shrink: 0;
+}
+
+.stat-card__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.stat-card__header {
   margin-bottom: var(--spacing-4);
 }
 
@@ -107,17 +127,6 @@
   color: var(--color-neutral-600);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.stat-card__icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
-  color: var(--color-neutral-white);
 }
 
 .stat-card__body {

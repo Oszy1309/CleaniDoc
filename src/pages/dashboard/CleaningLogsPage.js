@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle, Camera } from 'lucide-react';
 import LogListView from '../../components/features/LogListView';
 import LogDetailView from '../../components/features/LogDetailView';
+import LogDetailViewWithPhotos from '../../components/features/LogDetailViewWithPhotos';
 import './CleaningLogsPage.css';
 
 function CleaningLogsPage() {
@@ -11,6 +12,7 @@ function CleaningLogsPage() {
   const [loading, setLoading] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
   const [generatingLogs, setGeneratingLogs] = useState(false);
+  const [usePhotoUpload, setUsePhotoUpload] = useState(true); // Enable by default
 
   useEffect(() => {
     fetchLogsForDate(selectedDate);
@@ -30,7 +32,8 @@ function CleaningLogsPage() {
         `
         )
         .eq('scheduled_date', date)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit to 100 logs per day for performance
 
       if (error) throw error;
       setLogs(data || []);
@@ -244,8 +247,11 @@ function CleaningLogsPage() {
   };
 
   if (selectedLog) {
+    // Use Photo Upload enabled version or classic version
+    const DetailComponent = usePhotoUpload ? LogDetailViewWithPhotos : LogDetailView;
+
     return (
-      <LogDetailView
+      <DetailComponent
         logId={selectedLog.id}
         onBack={() => {
           setSelectedLog(null);
@@ -266,6 +272,19 @@ function CleaningLogsPage() {
           <label>Datum:</label>
           <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
         </div>
+
+        <div className="photo-upload-toggle">
+          <label>
+            <input
+              type="checkbox"
+              checked={usePhotoUpload}
+              onChange={e => setUsePhotoUpload(e.target.checked)}
+            />
+            <Camera size={16} />
+            Foto-Upload aktiviert
+          </label>
+        </div>
+
         <button
           className="btn-primary"
           onClick={() => generateLogsForDate(selectedDate)}

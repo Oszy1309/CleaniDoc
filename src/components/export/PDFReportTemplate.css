@@ -1,0 +1,140 @@
+/* Import Print Styles */
+@import '../../styles/PrintPDF.css';
+
+/* ============================================================================
+   PDF REPORT TEMPLATE - COMPONENT STYLES
+   ============================================================================ */
+
+/* Screen Display */
+.pdf-container {
+  background: white;
+  font-family: var(--font-family-base), 'Helvetica Neue', Arial, sans-serif;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+/* Typography Enhancements */
+.pdf-title {
+  font-family: var(--font-family-base);
+  letter-spacing: -0.025em;
+}
+
+.pdf-section-title {
+  font-family: var(--font-family-base);
+  letter-spacing: -0.015em;
+}
+
+/* Interactive Elements (Screen Only) */
+@media screen {
+  .pdf-preview-note {
+    animation: fadeInDown 0.3s ease-out;
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Hover Effects for Development */
+  .pdf-step-container:hover {
+    background: #f8fafc;
+    transition: background-color 0.2s ease;
+  }
+
+  .pdf-signature-block:hover {
+    background: #f0f9ff;
+    transition: background-color 0.2s ease;
+  }
+}
+
+/* Accessibility Improvements */
+.pdf-step-status {
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  letter-spacing: 0.025em;
+}
+
+.pdf-meta-label {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.pdf-meta-value {
+  font-weight: 500;
+}
+
+/* Print Quality Optimizations */
+@media print {
+  .pdf-container {
+    font-family: 'Times New Roman', Times, serif;
+  }
+
+  .pdf-title,
+  .pdf-section-title {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  /* Enhanced contrast for print */
+  .pdf-meta-label {
+    color: #374151;
+  }
+
+  .pdf-step-status {
+    border: 1px solid currentColor;
+  }
+
+  /* Ensure images print correctly */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* Loading States */
+.pdf-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #6b7280;
+}
+
+.pdf-error {
+  padding: 20px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  margin: 20px 0;
+}
+
+/* Responsive adjustments for screen */
+@media screen and (max-width: 768px) {
+  .pdf-container {
+    padding: 10px;
+    margin: 10px;
+  }
+
+  .pdf-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pdf-signature-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .pdf-photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
