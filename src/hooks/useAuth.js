@@ -71,6 +71,7 @@ export const useAuth = () => {
       const result = await authService.login(email, password, detectedRole, rememberMe);
 
       if (result.requires2FA) {
+        setLoading(false);
         return {
           success: false,
           requires2FA: true,
@@ -78,24 +79,27 @@ export const useAuth = () => {
         };
       }
 
-      // Login successful
+      // Login successful - update user state
+      console.log('✅ Login successful, setting user:', result.user);
       setUser(result.user);
       setRole(result.role);
+      setLoading(false);
 
       return {
         success: true,
         user: result.user,
         role: result.role,
+        token: result.token,
       };
     } catch (err) {
       const errorMsg = err.message || 'Login failed';
       setError(errorMsg);
+      setLoading(false);
+      console.error('Login error:', errorMsg);
       return {
         success: false,
         message: errorMsg,
       };
-    } finally {
-      setLoading(false);
     }
   }, []);
 

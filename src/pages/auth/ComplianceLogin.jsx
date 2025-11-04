@@ -130,14 +130,18 @@ function ComplianceLogin() {
   const handleLoginSuccess = role => {
     // Redirect basierend auf Rolle
     const redirects = {
-      admin: '/dashboard',
-      employee: '/schichtplan',
-      customer: '/kundenportal',
-      manager: '/dashboard',
+      admin: '/',
+      employee: '/',
+      customer: '/',
+      manager: '/',
     };
 
-    const redirectUrl = redirects[role] || '/dashboard';
-    navigate(redirectUrl);
+    const redirectUrl = redirects[role] || '/';
+
+    // Small delay to ensure state updates propagate through React
+    setTimeout(() => {
+      navigate(redirectUrl);
+    }, 100);
   };
 
   // ===== BACK BUTTON =====

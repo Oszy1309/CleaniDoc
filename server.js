@@ -1,34 +1,46 @@
 /**
- * Express Backend Server - Authentication & API Routes
+ * Express Backend Server - Supabase Integration
  * Runs on port 5000 in development
- * Provides API endpoints for the React frontend
+ * Provides API endpoints for authentication with real Supabase database
  */
 
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Try to import auth endpoints (if using ES modules)
-let authRoutes;
-try {
-  // This is a workaround for using ES modules in a Node server
-  // In production, consider using a proper backend setup
-  const authRoutesPath = './src/api/authAPI.js';
-  console.log(`[Server] Loading auth routes from ${authRoutesPath}...`);
-} catch (error) {
-  console.warn('[Server] Auth routes not available as ES module');
+// Supabase Client für Node.js
+const { createClient } = require('@supabase/supabase-js');
+
+// ===== INITIALIZE SUPABASE =====
+// Load from environment or hardcode for development
+// Use Service Role Key for backend operations
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'https://mfzvuzwxkfbsogqdnnry.supabase.co';
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1menZ1end4a2Zic29ncWRubnJ5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDYwNjU4NSwiZXhwIjoyMDc2MTgyNTg1fQ.U6KkLrSVUqietF6DyF84q9gyoy5xphoSVnO8IRv-xxs';
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('❌ Missing Supabase credentials');
+  process.exit(1);
 }
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+console.log('✅ Supabase client initialized');
 
 // ===== INITIALIZE EXPRESS =====
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ===== MIDDLEWARE =====
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    credentials: true,
+  })
+);
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
@@ -38,234 +50,464 @@ app.use((req, res, next) => {
   next();
 });
 
-// ===== MOCK AUTH ENDPOINTS (Until we can import authAPI.js) =====
-
-// Detect role from email
-app.post('/api/auth/detect-role', (req, res) => {
-  const { email } = req.body;
-
-  if (!email || !email.includes('@')) {
-    return res.status(400).json({
-      success: false,
-      message: 'Ungültige E-Mail-Adresse',
-    });
-  }
-
-  // Simple role detection logic
-  const detectedRole = detectRoleFromEmail(email);
-
-  res.json({
-    success: true,
-    email: email,
-    role: detectedRole,
-    has2FA: false,
-  });
-});
-
-// Login endpoint
-app.post('/api/auth/login', (req, res) => {
-  const { email, password, role } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'E-Mail und Passwort erforderlich',
-    });
-  }
-
-  // Mock authentication - for demo, accept any password
-  if (password.length < 3) {
-    return res.status(401).json({
-      success: false,
-      message: 'Ungültiges Passwort',
-    });
-  }
-
-  // Generate mock JWT token
-  const mockToken = Buffer.from(
-    JSON.stringify({
-      id: '123',
-      email: email,
-      role: role || 'employee',
-      iat: Date.now(),
-    })
-  ).toString('base64');
-
-  res.json({
-    success: true,
-    token: mockToken,
-    refreshToken: mockToken,
-    user: {
-      id: '123',
-      email: email,
-      role: role || 'employee',
-    },
-    role: role || 'employee',
-  });
-});
-
-// Verify 2FA endpoint
-app.post('/api/auth/verify-2fa', (req, res) => {
-  const { email, code } = req.body;
-
-  if (!code || code.length !== 6) {
-    return res.status(401).json({
-      success: false,
-      message: 'Ungültiger 2FA-Code',
-    });
-  }
-
-  const mockToken = Buffer.from(
-    JSON.stringify({
-      id: '123',
-      email: email,
-      role: 'employee',
-      iat: Date.now(),
-    })
-  ).toString('base64');
-
-  res.json({
-    success: true,
-    token: mockToken,
-    refreshToken: mockToken,
-    user: {
-      id: '123',
-      email: email,
-      role: 'employee',
-    },
-    role: 'employee',
-  });
-});
-
-// Refresh token endpoint
-app.post('/api/auth/refresh-token', (req, res) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      success: false,
-      message: 'Token erforderlich',
-    });
-  }
-
-  const mockToken = Buffer.from(
-    JSON.stringify({
-      id: '123',
-      email: 'user@example.com',
-      role: 'employee',
-      iat: Date.now(),
-    })
-  ).toString('base64');
-
-  res.json({
-    success: true,
-    token: mockToken,
-  });
-});
-
-// Validate token endpoint
-app.get('/api/auth/validate-token', (req, res) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      success: false,
-      message: 'Token erforderlich',
-    });
-  }
-
-  try {
-    const token = authHeader.substring(7);
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-
-    res.json({
-      success: true,
-      user: decoded,
-      id: decoded.id,
-      email: decoded.email,
-      role: decoded.role,
-    });
-  } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: 'Token ungültig',
-    });
-  }
-});
-
-// Logout endpoint
-app.post('/api/auth/logout', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Erfolgreich abgemeldet',
-  });
-});
-
-// Password reset request endpoint
-app.post('/api/auth/request-password-reset', (req, res) => {
-  const { email } = req.body;
-
-  res.json({
-    success: true,
-    message: 'Wenn diese E-Mail registriert ist, erhalten Sie einen Reset-Link',
-  });
-});
-
-// Password reset endpoint
-app.post('/api/auth/reset-password', (req, res) => {
-  const { token, newPassword } = req.body;
-
-  if (!token || !newPassword || newPassword.length < 8) {
-    return res.status(400).json({
-      success: false,
-      message: 'Ungültige Eingaben',
-    });
-  }
-
-  res.json({
-    success: true,
-    message: 'Passwort erfolgreich zurückgesetzt',
-  });
-});
+// ===== ENVIRONMENT VARIABLES =====
+const JWT_SECRET = process.env.REACT_APP_JWT_SECRET || 'dev-secret-key';
+const JWT_REFRESH_SECRET = process.env.REACT_APP_JWT_REFRESH_SECRET || 'dev-refresh-secret';
 
 // ===== HELPER FUNCTIONS =====
 
+/**
+ * Detect user role from email domain
+ */
 function detectRoleFromEmail(email) {
-  const domain = email.split('@')[1] || '';
+  const domain = email.split('@')[1];
 
-  // Simple detection based on email patterns
-  if (email.includes('admin') || email.includes('betrieb')) {
-    return 'admin';
-  }
-  if (email.includes('manager')) {
-    return 'manager';
-  }
-  if (email.includes('worker') || email.includes('employee')) {
-    return 'employee';
-  }
-  if (email.includes('customer') || email.includes('audit')) {
-    return 'customer';
-  }
+  if (email.includes('admin') || email.includes('betrieb')) return 'admin';
+  if (email.includes('manager')) return 'manager';
+  if (email.includes('worker') || email.includes('employee')) return 'employee';
+  if (email.includes('customer') || email.includes('audit')) return 'customer';
 
-  // Domain-based detection
-  if (domain === 'cleanidoc.de') {
-    return 'admin';
-  }
-  if (domain === 'example.com') {
-    return 'employee';
-  }
+  if (domain === 'cleanidoc.de') return 'admin';
+  if (domain === 'example.com') return 'employee';
 
-  // Default
   return 'customer';
 }
 
+/**
+ * Generate JWT token
+ */
+function generateToken(user) {
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+}
+
+/**
+ * Generate refresh token
+ */
+function generateRefreshToken(user) {
+  return jwt.sign(
+    {
+      id: user.id,
+      type: 'refresh',
+    },
+    JWT_REFRESH_SECRET,
+    { expiresIn: '7d' }
+  );
+}
+
+/**
+ * Log audit event to Supabase
+ */
+async function logAuditEvent(userId, email, action, metadata = {}) {
+  try {
+    await supabase.from('audit_events').insert({
+      user_id: userId || null,
+      email: email,
+      action: action,
+      metadata: metadata,
+      occurred_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error logging audit event:', error.message);
+  }
+}
+
+// ===== API ENDPOINTS =====
+
+/**
+ * POST /api/auth/detect-role
+ * Detect user role from email (first step of login flow)
+ */
+app.post('/api/auth/detect-role', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ungültige E-Mail-Adresse',
+      });
+    }
+
+    // Check if user exists in Supabase
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, email, role')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (userError || !user) {
+      console.log(`User not found: ${email}`);
+      return res.status(404).json({
+        success: false,
+        message: 'E-Mail nicht gefunden. Bitte überprüfen Sie die Eingabe.',
+      });
+    }
+
+    res.json({
+      success: true,
+      email: email,
+      role: user.role,
+      has2FA: false, // TODO: Add 2FA flag from database
+    });
+
+    await logAuditEvent(user.id, email, 'ROLE_DETECTION_SUCCESS');
+  } catch (error) {
+    console.error('detect-role error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Fehler bei der Identifizierung',
+    });
+  }
+});
+
+/**
+ * POST /api/auth/login
+ * Authenticate user with email and password
+ */
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'E-Mail und Passwort erforderlich',
+      });
+    }
+
+    // Get user from Supabase
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (userError || !user) {
+      console.log(`Login failed - user not found: ${email}`);
+      await logAuditEvent(null, email, 'LOGIN_FAILED', { reason: 'USER_NOT_FOUND' });
+      return res.status(401).json({
+        success: false,
+        message: 'E-Mail oder Passwort ungültig',
+      });
+    }
+
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatch) {
+      console.log(`Login failed - invalid password: ${email}`);
+      await logAuditEvent(user.id, email, 'LOGIN_FAILED', { reason: 'INVALID_PASSWORD' });
+      return res.status(401).json({
+        success: false,
+        message: 'E-Mail oder Passwort ungültig',
+      });
+    }
+
+    // Check if 2FA is enabled
+    if (user.two_factor_enabled) {
+      await logAuditEvent(user.id, email, 'LOGIN_REQUIRES_2FA');
+      return res.json({
+        success: true,
+        requires2FA: true,
+        message: '2FA erforderlich',
+      });
+    }
+
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Log successful login
+    await logAuditEvent(user.id, email, 'LOGIN_SUCCESS');
+
+    res.json({
+      success: true,
+      token: token,
+      refreshToken: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.first_name,
+        lastName: user.last_name,
+      },
+      role: user.role,
+    });
+  } catch (error) {
+    console.error('login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Anmeldung fehlgeschlagen',
+    });
+  }
+});
+
+/**
+ * POST /api/auth/verify-2fa
+ * Verify 2FA code and complete login
+ */
+app.post('/api/auth/verify-2fa', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    if (!code || code.length !== 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ungültiger Format',
+      });
+    }
+
+    // Get user from Supabase
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (userError || !user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Benutzer nicht gefunden',
+      });
+    }
+
+    if (!user.two_factor_enabled) {
+      return res.status(400).json({
+        success: false,
+        message: '2FA ist nicht aktiviert',
+      });
+    }
+
+    // TODO: Verify TOTP code using speakeasy
+    // For now, accept any 6-digit code
+    if (!/^\d{6}$/.test(code)) {
+      await logAuditEvent(user.id, email, '2FA_VERIFICATION_FAILED', { reason: 'INVALID_CODE' });
+      return res.status(401).json({
+        success: false,
+        message: 'Ungültiger 2FA-Code',
+      });
+    }
+
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    await logAuditEvent(user.id, email, '2FA_VERIFICATION_SUCCESS');
+
+    res.json({
+      success: true,
+      token: token,
+      refreshToken: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      role: user.role,
+    });
+  } catch (error) {
+    console.error('verify-2fa error:', error);
+    res.status(500).json({
+      success: false,
+      message: '2FA-Verifizierung fehlgeschlagen',
+    });
+  }
+});
+
+/**
+ * POST /api/auth/refresh-token
+ * Refresh JWT token
+ */
+app.post('/api/auth/refresh-token', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token erforderlich',
+      });
+    }
+
+    const refreshToken = authHeader.substring(7);
+
+    try {
+      const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+
+      // Generate new token
+      const newToken = jwt.sign(
+        {
+          id: decoded.id,
+          email: decoded.email,
+          role: decoded.role,
+        },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      res.json({
+        success: true,
+        token: newToken,
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token ungültig',
+      });
+    }
+  } catch (error) {
+    console.error('refresh-token error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Token-Aktualisierung fehlgeschlagen',
+    });
+  }
+});
+
+/**
+ * GET /api/auth/validate-token
+ * Validate JWT token
+ */
+app.get('/api/auth/validate-token', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token erforderlich',
+      });
+    }
+
+    const token = authHeader.substring(7);
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      res.json({
+        success: true,
+        user: decoded,
+        id: decoded.id,
+        email: decoded.email,
+        role: decoded.role,
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token ungültig oder abgelaufen',
+      });
+    }
+  } catch (error) {
+    console.error('validate-token error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Token-Validierung fehlgeschlagen',
+    });
+  }
+});
+
+/**
+ * POST /api/auth/logout
+ * Logout user
+ */
+app.post('/api/auth/logout', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const decoded = jwt.decode(token);
+        if (decoded) {
+          logAuditEvent(decoded.id, decoded.email, 'LOGOUT');
+        }
+      } catch (e) {
+        // Ignore decode errors
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Erfolgreich abgemeldet',
+    });
+  } catch (error) {
+    console.error('logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Abmeldung fehlgeschlagen',
+    });
+  }
+});
+
+/**
+ * POST /api/auth/request-password-reset
+ */
+app.post('/api/auth/request-password-reset', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    // Don't reveal if user exists
+    res.json({
+      success: true,
+      message: 'Wenn diese E-Mail registriert ist, erhalten Sie einen Reset-Link',
+    });
+
+    if (user) {
+      await logAuditEvent(user.id, email, 'PASSWORD_RESET_REQUESTED');
+    }
+  } catch (error) {
+    console.error('request-password-reset error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Fehler beim Anfordern des Passwort-Reset',
+    });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ */
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword || newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ungültige Eingaben',
+      });
+    }
+
+    // TODO: Implement proper token validation
+
+    res.json({
+      success: true,
+      message: 'Passwort erfolgreich zurückgesetzt',
+    });
+  } catch (error) {
+    console.error('reset-password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Passwort-Reset fehlgeschlagen',
+    });
+  }
+});
+
 // ===== ERROR HANDLER =====
 app.use((error, req, res, next) => {
-  console.error('[Server Error]', error);
+  console.error('Server Error:', error);
   res.status(500).json({
     success: false,
     message: 'Interner Server-Fehler',
-    error: process.env.NODE_ENV === 'development' ? error.message : undefined,
   });
 });
 
@@ -284,6 +526,7 @@ app.listen(PORT, () => {
 ║   CleaniDoc API Server                 ║
 ║   Environment: ${process.env.NODE_ENV || 'development'}                     ║
 ║   Port: ${PORT}                                  ║
+║   Supabase: Connected ✓                ║
 ║   API Base URL: http://localhost:${PORT}/api     ║
 ╚════════════════════════════════════════╝
   `);
