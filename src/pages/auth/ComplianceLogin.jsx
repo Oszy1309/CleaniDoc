@@ -1,19 +1,16 @@
+import React, { useState } from 'react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, Loader } from 'lucide-react';
+import './ComplianceLogin.css';
+
 /**
  * ENTERPRISE LOGIN SYSTEM FÜR LEBENSMITTEL-INDUSTRIE
  * Smart Role Detection: Email → Auto-Erkennung der Benutzerrolle
  *
  * Rollen:
  * 1. ADMIN/BETREIBER: Fabrik-Verantwortliche (Dashboard, Pläne, Reports)
- * 2. EMPLOYEE: Reinigungspersonal (Tagesplan, Fotos, Unterschrift)
- * 3. CUSTOMER: Externe Auditor/Lebensmittel-Fabrik (Reports, Genehmigungen)
+ * 2. MITARBEITER: Reinigungspersonal (Tagesplan, Fotos, Unterschrift)
+ * 3. KUNDE: Externe Auditor/Lebensmittel-Fabrik (Reports, Genehmigungen)
  */
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, Loader } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-import { authService } from '../../services/authService';
-import './ComplianceLogin.css';
 
 function ComplianceLogin() {
   // ===== STATE =====
@@ -26,17 +23,15 @@ function ComplianceLogin() {
   const [error, setError] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const navigate = useNavigate();
-  const { login, verify2FA } = useAuth();
 
   // ===== HELPER: Email validieren =====
-  const validateEmail = email => {
+  const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
 
   // ===== STEP 1: Email eingeben & Rolle erkennen =====
-  const handleEmailSubmit = async e => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim()) {
       setError('Bitte geben Sie Ihre E-Mail-Adresse ein');
@@ -52,27 +47,32 @@ function ComplianceLogin() {
 
     try {
       // API-Call: Email → Rolle auflösen
-      const response = await authService.detectRole(email);
+      const response = await fetch('/api/auth/detect-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-      if (!response.success) {
-        setError(response.message || 'E-Mail nicht gefunden. Bitte überprüfen Sie die Eingabe.');
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'E-Mail nicht gefunden. Bitte überprüfen Sie die Eingabe.');
         return;
       }
 
       // Rolle erkannt → Password-Screen anzeigen
-      setUserRole(response.role); // 'admin' | 'employee' | 'customer'
+      setUserRole(data.role); // 'admin' | 'employee' | 'customer'
       setStage('password');
     } catch (err) {
-      setError(
-        err.message || 'Fehler bei der Identifizierung. Bitte versuchen Sie es später erneut.'
-      );
+      setError('Fehler bei der Identifizierung. Bitte versuchen Sie es später erneut.');
+      console.error('Email detection error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   // ===== STEP 2: Passwort & Login =====
-  const handlePasswordSubmit = async e => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (!password.trim()) {
       setError('Bitte geben Sie Ihr Passwort ein');
@@ -83,25 +83,42 @@ function ComplianceLogin() {
     setError('');
 
     try {
-      const result = await login(email, password, userRole, rememberMe);
+      // API-Call: Login mit Email + Passwort
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          role: userRole,
+          rememberMe,
+        }),
+      });
 
-      if (result.requires2FA) {
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Anmeldung fehlgeschlagen. Passwort korrekt?');
+        return;
+      }
+
+      // 2FA erforderlich?
+      if (data.requires2FA) {
         setStage('2fa');
-      } else if (result.success) {
-        // Direkter Login erfolgreich
-        handleLoginSuccess(result.role);
       } else {
-        setError(result.message || 'Anmeldung fehlgeschlagen');
+        // Direkter Login erfolgreich
+        handleLoginSuccess(data);
       }
     } catch (err) {
-      setError(err.message || 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es später erneut.');
+      setError('Anmeldung fehlgeschlagen. Bitte versuchen Sie es später erneut.');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   // ===== STEP 3: 2FA Verifizierung =====
-  const handle2FASubmit = async e => {
+  const handle2FASubmit = async (e) => {
     e.preventDefault();
     if (!twoFactorCode.trim()) {
       setError('Bitte geben Sie Ihren 2FA-Code ein');
@@ -112,36 +129,46 @@ function ComplianceLogin() {
     setError('');
 
     try {
-      const result = await verify2FA(email, twoFactorCode);
+      const response = await fetch('/api/auth/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          code: twoFactorCode,
+        }),
+      });
 
-      if (result.success) {
-        handleLoginSuccess(result.role);
-      } else {
-        setError(result.message || 'Ungültiger 2FA-Code');
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || 'Ungültiger 2FA-Code');
+        return;
       }
+
+      handleLoginSuccess(data);
     } catch (err) {
-      setError(err.message || '2FA-Verifizierung fehlgeschlagen');
+      setError('2FA-Verifizierung fehlgeschlagen');
+      console.error('2FA error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   // ===== LOGIN ERFOLGREICH =====
-  const handleLoginSuccess = role => {
+  const handleLoginSuccess = (data) => {
+    // Token speichern
+    localStorage.setItem('authToken', data.token);
+    localStorage.setItem('userRole', data.role);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
     // Redirect basierend auf Rolle
     const redirects = {
       admin: '/',
       employee: '/',
       customer: '/',
-      manager: '/',
     };
 
-    const redirectUrl = redirects[role] || '/';
-
-    // Small delay to ensure state updates propagate through React
-    setTimeout(() => {
-      navigate(redirectUrl);
-    }, 100);
+    window.location.href = redirects[userRole] || '/';
   };
 
   // ===== BACK BUTTON =====
@@ -162,12 +189,7 @@ function ComplianceLogin() {
         icon: '🏭',
         color: '#0f172a',
         accent: '#2563eb',
-        features: [
-          'Vollständiges Dashboard',
-          'Pläne & Reports',
-          'Benutzer verwalten',
-          'Audit-Export',
-        ],
+        features: ['Vollständiges Dashboard', 'Pläne & Reports', 'Benutzer verwalten', 'Audit-Export'],
       },
       employee: {
         title: 'Schichtplan',
@@ -185,14 +207,6 @@ function ComplianceLogin() {
         accent: '#f59e0b',
         features: ['Compliance-Status', 'Reports abrufen', 'Genehmigungen', 'Audit-Trail'],
       },
-      manager: {
-        title: 'Manager',
-        subtitle: 'Verwaltungszugang',
-        icon: '👨‍💼',
-        color: '#0f172a',
-        accent: '#6366f1',
-        features: ['Dashboard', 'Berichte', 'Team verwalten', 'Analysen'],
-      },
     };
     return configs[userRole] || configs.admin;
   };
@@ -204,14 +218,29 @@ function ComplianceLogin() {
     <div className="compliance-login-container">
       {/* HEADER BANNER */}
       <div className="login-header">
-        <div className="header-content">
-          <h1 className="header-title">CleaniDoc</h1>
-          <p className="header-subtitle">HACCP-konforme Reinigungsdokumentation</p>
+        <div className="header-top">
+          <div className="header-logo">
+            <div className="logo-icon">🏭</div>
+            <div className="logo-text">
+              <h1>CleaniDoc</h1>
+              <p>by MSOB</p>
+            </div>
+          </div>
+          <div className="msob-badge">
+            <div className="msob-badge-icon">M</div>
+            <div className="msob-badge-text">MSOB</div>
+          </div>
         </div>
-        <div className="compliance-badges">
-          <span className="badge">ISO 22000</span>
-          <span className="badge">HACCP-Ready</span>
-          <span className="badge">DSGVO</span>
+
+        <div className="header-content">
+          <h2 className="header-title">HACCP-konforme Reinigungsdokumentation</h2>
+          <p className="header-subtitle">Enterprise-Lösung für die Lebensmittel-Industrie</p>
+
+          <div className="compliance-badges">
+            <span className="badge">ISO 22000</span>
+            <span className="badge">HACCP-Ready</span>
+            <span className="badge">DSGVO</span>
+          </div>
         </div>
       </div>
 
@@ -235,7 +264,7 @@ function ComplianceLogin() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={e => {
+                      onChange={(e) => {
                         setEmail(e.target.value);
                         setError('');
                       }}
@@ -253,7 +282,11 @@ function ComplianceLogin() {
                   </div>
                 )}
 
-                <button type="submit" disabled={loading || !email.trim()} className="btn-submit">
+                <button
+                  type="submit"
+                  disabled={loading || !email.trim()}
+                  className="btn-submit"
+                >
                   {loading ? (
                     <>
                       <Loader size={16} className="spinner" />
@@ -295,7 +328,7 @@ function ComplianceLogin() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       value={password}
-                      onChange={e => {
+                      onChange={(e) => {
                         setPassword(e.target.value);
                         setError('');
                       }}
@@ -319,7 +352,7 @@ function ComplianceLogin() {
                     <input
                       type="checkbox"
                       checked={rememberMe}
-                      onChange={e => setRememberMe(e.target.checked)}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                     />
                     <span>Anmeldedaten merken</span>
                   </label>
@@ -335,7 +368,11 @@ function ComplianceLogin() {
                   </div>
                 )}
 
-                <button type="submit" disabled={loading || !password.trim()} className="btn-submit">
+                <button
+                  type="submit"
+                  disabled={loading || !password.trim()}
+                  className="btn-submit"
+                >
                   {loading ? (
                     <>
                       <Loader size={16} className="spinner" />
@@ -380,7 +417,7 @@ function ComplianceLogin() {
                     id="2fa-code"
                     type="text"
                     value={twoFactorCode}
-                    onChange={e => {
+                    onChange={(e) => {
                       setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6));
                       setError('');
                     }}
