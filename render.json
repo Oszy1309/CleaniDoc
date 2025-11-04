@@ -1,0 +1,4 @@
+{
+  "buildCommand": "HUSKY=0 npm install && npm run build",
+  "startCommand": "node server.js"
+}
