@@ -10,13 +10,6 @@
     }
   },
 
-  "functions": {
-    "app/api/**/*": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 30
-    }
-  },
-
   "headers": [
     {
       "source": "/static/(.*)",
@@ -78,11 +71,7 @@
 
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/((?!api/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
@@ -105,33 +94,6 @@
   "cleanUrls": true,
 
   "framework": "create-react-app",
-
-  "crons": [
-    {
-      "path": "/api/cron/cleanup-temp-files",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/backup-daily-reports",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/send-daily-summaries",
-      "schedule": "0 8 * * 1-5"
-    },
-    {
-      "path": "/api/cron/cleanup-old-logs",
-      "schedule": "0 1 * * 0"
-    },
-    {
-      "path": "/api/cron/generate-weekly-reports",
-      "schedule": "0 6 * * 1"
-    },
-    {
-      "path": "/api/cron/check-system-health",
-      "schedule": "*/30 * * * *"
-    }
-  ],
 
   "env": {
     "NEXT_PUBLIC_APP_NAME": "CleaniDoc Dashboard",
