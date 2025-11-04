@@ -36,10 +36,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ===== MIDDLEWARE =====
+// CORS Configuration - Allow all origins for development/production
+// In production, you can restrict to specific domains if needed
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
-    credentials: true,
+    origin: '*', // Allow all origins (safe for API-only backend)
+    credentials: false,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 app.use(bodyParser.json({ limit: '50mb' }));
