@@ -12,6 +12,9 @@ import './ComplianceLogin.css';
  * 3. KUNDE: Externe Auditor/Lebensmittel-Fabrik (Reports, Genehmigungen)
  */
 
+// Backend API URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function ComplianceLogin() {
   // ===== STATE =====
   const [stage, setStage] = useState('email'); // 'email' | 'password' | '2fa'
@@ -47,7 +50,7 @@ function ComplianceLogin() {
 
     try {
       // API-Call: Email → Rolle auflösen
-      const response = await fetch('/api/auth/detect-role', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/detect-role`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -84,7 +87,7 @@ function ComplianceLogin() {
 
     try {
       // API-Call: Login mit Email + Passwort
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -129,7 +132,7 @@ function ComplianceLogin() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/verify-2fa', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-2fa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
