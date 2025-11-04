@@ -15,6 +15,12 @@ import './ComplianceLogin.css';
 // Backend API URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+// Debug: Log the API URL being used
+if (typeof window !== 'undefined') {
+  console.log('[DEBUG] REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+  console.log('[DEBUG] Using API_BASE_URL:', API_BASE_URL);
+}
+
 function ComplianceLogin() {
   // ===== STATE =====
   const [stage, setStage] = useState('email'); // 'email' | 'password' | '2fa'
