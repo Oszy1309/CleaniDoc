@@ -77,6 +77,8 @@
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #e0e7ff;
+  width: 100%;
+  min-width: 0;
 }
 
 .worker-assignment label {
@@ -94,6 +96,10 @@
   background: white;
   color: #333;
   transition: all 0.2s ease;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .worker-select:hover:not(:disabled) {
