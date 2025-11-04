@@ -15,15 +15,16 @@ require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
 // ===== INITIALIZE SUPABASE =====
-// Load from environment or hardcode for development
+// Load from environment variables
 // Use Service Role Key for backend operations
-const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'https://mfzvuzwxkfbsogqdnnry.supabase.co';
-const SUPABASE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1menZ1end4a2Zic29ncWRubnJ5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDYwNjU4NSwiZXhwIjoyMDc2MTgyNTg1fQ.U6KkLrSVUqietF6DyF84q9gyoy5xphoSVnO8IRv-xxs';
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('❌ Missing Supabase credentials');
+  console.error('❌ Missing required Supabase credentials');
+  console.error('  - REACT_APP_SUPABASE_URL:', SUPABASE_URL ? '✓' : '✗ missing');
+  console.error('  - SUPABASE_SERVICE_ROLE_KEY:', SUPABASE_KEY ? '✓' : '✗ missing');
+  console.error('\nPlease set these variables in your .env.local file');
   process.exit(1);
 }
 
@@ -51,8 +52,17 @@ app.use((req, res, next) => {
 });
 
 // ===== ENVIRONMENT VARIABLES =====
-const JWT_SECRET = process.env.REACT_APP_JWT_SECRET || 'dev-secret-key';
-const JWT_REFRESH_SECRET = process.env.REACT_APP_JWT_REFRESH_SECRET || 'dev-refresh-secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
+  console.error('❌ Missing required JWT secrets');
+  console.error('  - JWT_SECRET:', JWT_SECRET ? '✓' : '✗ missing');
+  console.error('  - JWT_REFRESH_SECRET:', JWT_REFRESH_SECRET ? '✓' : '✗ missing');
+  console.error('\nPlease set these variables in your .env.local file');
+  console.error('Generate secure secrets with: openssl rand -base64 32');
+  process.exit(1);
+}
 
 // ===== HELPER FUNCTIONS =====
 

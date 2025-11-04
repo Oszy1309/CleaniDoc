@@ -5,11 +5,21 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
 // Load environment variables
-const SUPABASE_URL = 'https://mfzvuzwxkfbsogqdnnry.supabase.co';
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 // Use Service Role Key for database operations
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1menZ1end4a2Zic29ncWRubnJ5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDYwNjU4NSwiZXhwIjoyMDc2MTgyNTg1fQ.U6KkLrSVUqietF6DyF84q9gyoy5xphoSVnO8IRv-xxs';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Validate required environment variables
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('❌ Missing required environment variables:');
+  console.error('  - REACT_APP_SUPABASE_URL:', SUPABASE_URL ? '✓' : '✗ missing');
+  console.error('  - SUPABASE_SERVICE_ROLE_KEY:', SUPABASE_KEY ? '✓' : '✗ missing');
+  console.error('\nPlease set these variables in your .env.local file');
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -17,25 +27,27 @@ async function setup() {
   console.log('🔧 Setting up Supabase database...\n');
 
   try {
-    // Create test users
+    // Create test users for DEVELOPMENT/TESTING ONLY
+    // NEVER use these credentials in production!
+    // Change passwords immediately after first login
     const testUsers = [
       {
         email: 'admin@cleanidoc.de',
-        password: 'password123',
+        password: 'password123', // CHANGE THIS IN PRODUCTION!
         role: 'admin',
         first_name: 'Admin',
         last_name: 'User',
       },
       {
         email: 'worker@cleanidoc.de',
-        password: 'password123',
+        password: 'password123', // CHANGE THIS IN PRODUCTION!
         role: 'employee',
         first_name: 'Worker',
         last_name: 'User',
       },
       {
         email: 'customer@cleanidoc.de',
-        password: 'password123',
+        password: 'password123', // CHANGE THIS IN PRODUCTION!
         role: 'customer',
         first_name: 'Customer',
         last_name: 'User',
