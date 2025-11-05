@@ -110,6 +110,21 @@ function AccountSettings() {
     try {
       setSaving(true);
 
+      // Check if session exists
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw new Error('Session error: ' + sessionError.message);
+      }
+
+      if (!session) {
+        setMessage('Sitzung abgelaufen. Bitte melden Sie sich erneut an.');
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: passwordChange.newPassword,
       });
@@ -125,7 +140,7 @@ function AccountSettings() {
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Fehler beim Ändern des Passworts:', error);
-      setMessage('Fehler beim Ändern des Passworts');
+      setMessage(`Fehler beim Ändern des Passworts: ${error.message}`);
     } finally {
       setSaving(false);
     }
