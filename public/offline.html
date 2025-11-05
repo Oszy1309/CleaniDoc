@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - CleaniDoc Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f8 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .offline-container {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .offline-icon {
+        font-size: 72px;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      h1 {
+        font-size: 28px;
+        color: #1f2937;
+        margin-bottom: 12px;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .features {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 30px;
+        text-align: left;
+      }
+
+      .feature-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+      }
+
+      .feature-list {
+        list-style: none;
+      }
+
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #4b5563;
+      }
+
+      .feature-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .feature-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: #dcfce7;
+        border-radius: 6px;
+        color: #16a34a;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: #2563eb;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #1d4ed8;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      }
+
+      .btn-secondary {
+        background: #e5e7eb;
+        color: #1f2937;
+      }
+
+      .btn-secondary:hover {
+        background: #d1d5db;
+      }
+
+      .status {
+        margin-top: 24px;
+        padding: 16px;
+        background: #fef3c7;
+        border: 1px solid #fbbf24;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #b45309;
+        font-weight: 500;
+      }
+
+      @media (max-width: 480px) {
+        .offline-container {
+          padding: 24px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        .offline-icon {
+          font-size: 56px;
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        }
+
+        .offline-container {
+          background: #1f2937;
+          color: #f3f4f6;
+        }
+
+        h1 {
+          color: #f3f4f6;
+        }
+
+        .subtitle {
+          color: #9ca3af;
+        }
+
+        .features {
+          background: #111827;
+        }
+
+        .feature-title {
+          color: #9ca3af;
+        }
+
+        .feature-item {
+          color: #d1d5db;
+        }
+
+        .btn-secondary {
+          background: #374151;
+          color: #f3f4f6;
+        }
+
+        .btn-secondary:hover {
+          background: #4b5563;
+        }
+
+        .status {
+          background: #78350f;
+          border-color: #b45309;
+          color: #fbbf24;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="offline-container">
+      <div class="offline-icon">📵</div>
+
+      <h1>You're Offline</h1>
+      <p class="subtitle">
+        You are currently offline, but don't worry! CleaniDoc is designed to work without an
+        internet connection.
+      </p>
+
+      <div class="features">
+        <div class="feature-title">✓ What You Can Do Offline</div>
+        <ul class="feature-list">
+          <li class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>View today's shifts and tasks</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>Start and complete shifts</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>Take photos and upload evidence</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>Sign tasks and shifts</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">✓</span>
+            <span>All changes auto-sync when online</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" onclick="retryLoad()">
+          🔄 Try Again
+        </button>
+        <button class="btn-secondary" onclick="goHome()">
+          🏠 Go to Home
+        </button>
+      </div>
+
+      <div class="status" id="status">
+        Waiting for connection...
+      </div>
+    </div>
+
+    <script>
+      // Check online status
+      function updateStatus() {
+        const status = document.getElementById('status');
+        if (navigator.onLine) {
+          status.textContent = '✓ You are back online! Reloading...';
+          status.style.background = '#dcfce7';
+          status.style.borderColor = '#16a34a';
+          status.style.color = '#166534';
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          status.textContent = '📵 Still offline. Changes will be saved and synced.';
+        }
+      }
+
+      function retryLoad() {
+        window.location.reload();
+      }
+
+      function goHome() {
+        window.location.href = '/';
+      }
+
+      // Listen for online event
+      window.addEventListener('online', updateStatus);
+      window.addEventListener('offline', updateStatus);
+
+      // Check initial status
+      updateStatus();
+    </script>
+  </body>
+</html>
