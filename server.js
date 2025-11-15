@@ -136,6 +136,14 @@ async function logAuditEvent(userId, email, action, metadata = {}) {
  * POST /api/auth/detect-role
  * Detect user role from email (first step of login flow)
  */
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    env: process.env.NODE_ENV || 'unknown',
+    time: new Date().toISOString(),
+  });
+});
+
 app.post('/api/auth/detect-role', async (req, res) => {
   try {
     const { email } = req.body;
@@ -379,14 +387,6 @@ app.post('/api/auth/refresh-token', (req, res) => {
       message: 'Token-Aktualisierung fehlgeschlagen',
     });
   }
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    env: process.env.NODE_ENV || 'unknown',
-    time: new Date().toISOString(),
-  });
 });
 
 /**
