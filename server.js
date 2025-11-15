@@ -381,6 +381,14 @@ app.post('/api/auth/refresh-token', (req, res) => {
   }
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    env: process.env.NODE_ENV || 'unknown',
+    time: new Date().toISOString(),
+  });
+});
+
 /**
  * GET /api/auth/validate-token
  * Validate JWT token
