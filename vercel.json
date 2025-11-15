@@ -71,6 +71,10 @@
 
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://cleanidoc.onrender.com/api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
