@@ -1,7 +1,9 @@
+// server.js
 /**
- * Express Backend Server - Supabase Integration
- * Runs on port 5000 in development
- * Provides API endpoints for authentication with real Supabase database
+ * CleaniDoc Backend Server - Supabase Integration
+ * - Läuft auf Render mit Node
+ * - Nutzt Supabase Service Role für DB-Zugriff
+ * - Stellt Auth-API für das React-Frontend bereit
  */
 
 const express = require('express');
@@ -10,37 +12,29 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
-// Supabase Client für Node.js
 const { createClient } = require('@supabase/supabase-js');
 
-// ===== INITIALIZE SUPABASE =====
-// Use Service Role Key for backend operations
-// WICHTIG: Diese Keys MÜSSEN als Environment Variablen in Vercel gesetzt sein!
+// ===== ENV / SUPABASE =====
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_KEY) {
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   console.error('❌ Missing Supabase credentials');
-  console.error('   Bitte folgende Environment Variablen in Vercel/local setzen:');
-  console.error('   - REACT_APP_SUPABASE_URL');
-  console.error('   - SUPABASE_SERVICE_ROLE_KEY');
+  console.error('   REACT_APP_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY müssen gesetzt sein');
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Service-Client: volle Rechte, RLS wird umgangen
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 console.log('✅ Supabase client initialized');
 
-// ===== INITIALIZE EXPRESS =====
+// ===== EXPRESS SETUP =====
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ===== MIDDLEWARE =====
-// CORS Configuration - Allow all origins for development/production
-// In production, you can restrict to specific domains if needed
 app.use(
   cors({
-    origin: '*', // Allow all origins (safe for API-only backend)
+    origin: '*',
     credentials: false,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -49,44 +43,16 @@ app.use(
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// Request logging
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// ===== ENVIRONMENT VARIABLES =====
-const JWT_SECRET = process.env.REACT_APP_JWT_SECRET;
-const JWT_REFRESH_SECRET = process.env.REACT_APP_JWT_REFRESH_SECRET;
+// ===== JWT SECRETS =====
+const JWT_SECRET = process.env.REACT_APP_JWT_SECRET || 'dev-secret-key';
+const JWT_REFRESH_SECRET = process.env.REACT_APP_JWT_REFRESH_SECRET || 'dev-refresh-secret';
 
-if (!JWT_SECRET || !JWT_REFRESH_SECRET) {
-  console.warn('⚠️  JWT Secrets nicht gesetzt - verwende Development Values (NICHT für Production!)');
-  if (!JWT_SECRET) process.env.REACT_APP_JWT_SECRET = 'dev-secret-key';
-  if (!JWT_REFRESH_SECRET) process.env.REACT_APP_JWT_REFRESH_SECRET = 'dev-refresh-secret';
-}
-
-// ===== HELPER FUNCTIONS =====
-
-/**
- * Detect user role from email domain
- */
-function detectRoleFromEmail(email) {
-  const domain = email.split('@')[1];
-
-  if (email.includes('admin') || email.includes('betrieb')) return 'admin';
-  if (email.includes('manager')) return 'manager';
-  if (email.includes('worker') || email.includes('employee')) return 'employee';
-  if (email.includes('customer') || email.includes('audit')) return 'customer';
-
-  if (domain === 'cleanidoc.de') return 'admin';
-  if (domain === 'example.com') return 'employee';
-
-  return 'customer';
-}
-
-/**
- * Generate JWT token
- */
+// ===== HELPERS =====
 function generateToken(user) {
   return jwt.sign(
     {
@@ -99,9 +65,6 @@ function generateToken(user) {
   );
 }
 
-/**
- * Generate refresh token
- */
 function generateRefreshToken(user) {
   return jwt.sign(
     {
@@ -113,37 +76,27 @@ function generateRefreshToken(user) {
   );
 }
 
-/**
- * Log audit event to Supabase
- */
 async function logAuditEvent(userId, email, action, metadata = {}) {
   try {
     await supabase.from('audit_events').insert({
       user_id: userId || null,
-      email: email,
-      action: action,
-      metadata: metadata,
+      email,
+      action,
+      metadata,
       occurred_at: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error('Error logging audit event:', error.message);
+  } catch (err) {
+    console.error('Error logging audit event:', err.message);
   }
 }
 
-// ===== API ENDPOINTS =====
+// ===== AUTH ENDPOINTS =====
 
 /**
  * POST /api/auth/detect-role
- * Detect user role from email (first step of login flow)
+ * Prüft, ob es zu der E-Mail einen User in public.users gibt
+ * und liefert die gespeicherte Rolle zurück.
  */
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    env: process.env.NODE_ENV || 'unknown',
-    time: new Date().toISOString(),
-  });
-});
-
 app.post('/api/auth/detect-role', async (req, res) => {
   try {
     const { email } = req.body;
@@ -155,31 +108,32 @@ app.post('/api/auth/detect-role', async (req, res) => {
       });
     }
 
-    // Check if user exists in Supabase
-    const { data: user, error: userError } = await supabase
+    // User aus deiner eigenen Credential-Tabelle public.users
+    const { data: user, error } = await supabase
       .from('users')
       .select('id, email, role')
       .eq('email', email.toLowerCase())
       .single();
 
-    if (userError || !user) {
-      console.log(`User not found: ${email}`);
+    if (error || !user) {
+      console.log(`User not found in public.users: ${email}`);
       return res.status(404).json({
         success: false,
         message: 'E-Mail nicht gefunden. Bitte überprüfen Sie die Eingabe.',
       });
     }
 
+    // Rolle aus public.users zurückgeben
     res.json({
       success: true,
-      email: email,
+      email: user.email,
       role: user.role,
-      has2FA: false, // TODO: Add 2FA flag from database
+      has2FA: false,
     });
 
     await logAuditEvent(user.id, email, 'ROLE_DETECTION_SUCCESS');
-  } catch (error) {
-    console.error('detect-role error:', error);
+  } catch (err) {
+    console.error('detect-role error:', err);
     res.status(500).json({
       success: false,
       message: 'Fehler bei der Identifizierung',
@@ -189,7 +143,7 @@ app.post('/api/auth/detect-role', async (req, res) => {
 
 /**
  * POST /api/auth/login
- * Authenticate user with email and password
+ * Login über public.users (password_hash), Rolle wird von dort gelesen.
  */
 app.post('/api/auth/login', async (req, res) => {
   try {
@@ -202,14 +156,14 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Get user from Supabase
-    const { data: user, error: userError } = await supabase
+    // User + Passwort-Hash holen
+    const { data: user, error } = await supabase
       .from('users')
-      .select('*')
+      .select('id, email, password_hash, role, first_name, last_name')
       .eq('email', email.toLowerCase())
       .single();
 
-    if (userError || !user) {
+    if (error || !user) {
       console.log(`Login failed - user not found: ${email}`);
       await logAuditEvent(null, email, 'LOGIN_FAILED', { reason: 'USER_NOT_FOUND' });
       return res.status(401).json({
@@ -218,9 +172,18 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Verify password
-    const passwordMatch = await bcrypt.compare(password, user.password_hash);
-    if (!passwordMatch) {
+    // optional: Rolle prüfen, falls Frontend schon eine erwartete Rolle übergibt
+    if (role && role !== user.role) {
+      console.log(`Login failed - role mismatch: ${email}, expected ${role}, got ${user.role}`);
+      await logAuditEvent(user.id, email, 'LOGIN_FAILED', { reason: 'ROLE_MISMATCH' });
+      return res.status(401).json({
+        success: false,
+        message: 'Rollen-Konflikt',
+      });
+    }
+
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) {
       console.log(`Login failed - invalid password: ${email}`);
       await logAuditEvent(user.id, email, 'LOGIN_FAILED', { reason: 'INVALID_PASSWORD' });
       return res.status(401).json({
@@ -229,27 +192,15 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Check if 2FA is enabled
-    if (user.two_factor_enabled) {
-      await logAuditEvent(user.id, email, 'LOGIN_REQUIRES_2FA');
-      return res.json({
-        success: true,
-        requires2FA: true,
-        message: '2FA erforderlich',
-      });
-    }
-
-    // Generate tokens
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Log successful login
     await logAuditEvent(user.id, email, 'LOGIN_SUCCESS');
 
     res.json({
       success: true,
-      token: token,
-      refreshToken: refreshToken,
+      token,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -259,8 +210,8 @@ app.post('/api/auth/login', async (req, res) => {
       },
       role: user.role,
     });
-  } catch (error) {
-    console.error('login error:', error);
+  } catch (err) {
+    console.error('login error:', err);
     res.status(500).json({
       success: false,
       message: 'Anmeldung fehlgeschlagen',
@@ -269,80 +220,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 /**
- * POST /api/auth/verify-2fa
- * Verify 2FA code and complete login
- */
-app.post('/api/auth/verify-2fa', async (req, res) => {
-  try {
-    const { email, code } = req.body;
-
-    if (!code || code.length !== 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Ungültiger Format',
-      });
-    }
-
-    // Get user from Supabase
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .single();
-
-    if (userError || !user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Benutzer nicht gefunden',
-      });
-    }
-
-    if (!user.two_factor_enabled) {
-      return res.status(400).json({
-        success: false,
-        message: '2FA ist nicht aktiviert',
-      });
-    }
-
-    // TODO: Verify TOTP code using speakeasy
-    // For now, accept any 6-digit code
-    if (!/^\d{6}$/.test(code)) {
-      await logAuditEvent(user.id, email, '2FA_VERIFICATION_FAILED', { reason: 'INVALID_CODE' });
-      return res.status(401).json({
-        success: false,
-        message: 'Ungültiger 2FA-Code',
-      });
-    }
-
-    // Generate tokens
-    const token = generateToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    await logAuditEvent(user.id, email, '2FA_VERIFICATION_SUCCESS');
-
-    res.json({
-      success: true,
-      token: token,
-      refreshToken: refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      role: user.role,
-    });
-  } catch (error) {
-    console.error('verify-2fa error:', error);
-    res.status(500).json({
-      success: false,
-      message: '2FA-Verifizierung fehlgeschlagen',
-    });
-  }
-});
-
-/**
  * POST /api/auth/refresh-token
- * Refresh JWT token
  */
 app.post('/api/auth/refresh-token', (req, res) => {
   try {
@@ -356,32 +234,31 @@ app.post('/api/auth/refresh-token', (req, res) => {
 
     const refreshToken = authHeader.substring(7);
 
+    let decoded;
     try {
-      const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-
-      // Generate new token
-      const newToken = jwt.sign(
-        {
-          id: decoded.id,
-          email: decoded.email,
-          role: decoded.role,
-        },
-        JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-
-      res.json({
-        success: true,
-        token: newToken,
-      });
-    } catch (error) {
+      decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    } catch (err) {
       return res.status(401).json({
         success: false,
         message: 'Refresh token ungültig',
       });
     }
-  } catch (error) {
-    console.error('refresh-token error:', error);
+
+    // Nur die ID ist im Refresh-Token gespeichert
+    const newAccessToken = jwt.sign(
+      {
+        id: decoded.id,
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({
+      success: true,
+      token: newAccessToken,
+    });
+  } catch (err) {
+    console.error('refresh-token error:', err);
     res.status(500).json({
       success: false,
       message: 'Token-Aktualisierung fehlgeschlagen',
@@ -391,7 +268,6 @@ app.post('/api/auth/refresh-token', (req, res) => {
 
 /**
  * GET /api/auth/validate-token
- * Validate JWT token
  */
 app.get('/api/auth/validate-token', (req, res) => {
   try {
@@ -405,23 +281,25 @@ app.get('/api/auth/validate-token', (req, res) => {
 
     const token = authHeader.substring(7);
 
+    let decoded;
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      res.json({
-        success: true,
-        user: decoded,
-        id: decoded.id,
-        email: decoded.email,
-        role: decoded.role,
-      });
-    } catch (error) {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
       return res.status(401).json({
         success: false,
         message: 'Token ungültig oder abgelaufen',
       });
     }
-  } catch (error) {
-    console.error('validate-token error:', error);
+
+    res.json({
+      success: true,
+      user: decoded,
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+    });
+  } catch (err) {
+    console.error('validate-token error:', err);
     res.status(500).json({
       success: false,
       message: 'Token-Validierung fehlgeschlagen',
@@ -431,9 +309,8 @@ app.get('/api/auth/validate-token', (req, res) => {
 
 /**
  * POST /api/auth/logout
- * Logout user
  */
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -441,10 +318,10 @@ app.post('/api/auth/logout', (req, res) => {
       try {
         const decoded = jwt.decode(token);
         if (decoded) {
-          logAuditEvent(decoded.id, decoded.email, 'LOGOUT');
+          await logAuditEvent(decoded.id, decoded.email, 'LOGOUT');
         }
       } catch (e) {
-        // Ignore decode errors
+        // ignore
       }
     }
 
@@ -452,8 +329,8 @@ app.post('/api/auth/logout', (req, res) => {
       success: true,
       message: 'Erfolgreich abgemeldet',
     });
-  } catch (error) {
-    console.error('logout error:', error);
+  } catch (err) {
+    console.error('logout error:', err);
     res.status(500).json({
       success: false,
       message: 'Abmeldung fehlgeschlagen',
@@ -461,150 +338,7 @@ app.post('/api/auth/logout', (req, res) => {
   }
 });
 
-/**
- * POST /api/auth/request-password-reset
- */
-app.post('/api/auth/request-password-reset', async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const { data: user } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email.toLowerCase())
-      .single();
-
-    // Don't reveal if user exists
-    res.json({
-      success: true,
-      message: 'Wenn diese E-Mail registriert ist, erhalten Sie einen Reset-Link',
-    });
-
-    if (user) {
-      await logAuditEvent(user.id, email, 'PASSWORD_RESET_REQUESTED');
-    }
-  } catch (error) {
-    console.error('request-password-reset error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Fehler beim Anfordern des Passwort-Reset',
-    });
-  }
-});
-
-/**
- * POST /api/auth/reset-password
- */
-app.post('/api/auth/reset-password', async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-
-    if (!token || !newPassword || newPassword.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: 'Ungültige Eingaben',
-      });
-    }
-
-    // TODO: Implement proper token validation
-
-    res.json({
-      success: true,
-      message: 'Passwort erfolgreich zurückgesetzt',
-    });
-  } catch (error) {
-    console.error('reset-password error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Passwort-Reset fehlgeschlagen',
-    });
-  }
-});
-
-/**
- * POST /api/auth/change-password
- * Change password for authenticated user
- */
-app.post('/api/auth/change-password', async (req, res) => {
-  try {
-    const { email, currentPassword, newPassword } = req.body;
-
-    if (!email || !currentPassword || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email, aktuelles und neues Passwort sind erforderlich',
-      });
-    }
-
-    if (newPassword.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: 'Neues Passwort muss mindestens 8 Zeichen lang sein',
-      });
-    }
-
-    // Get user from Supabase
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .single();
-
-    if (userError || !user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Benutzer nicht gefunden',
-      });
-    }
-
-    // Verify current password
-    const passwordMatch = await bcrypt.compare(currentPassword, user.password_hash);
-    if (!passwordMatch) {
-      await logAuditEvent(user.id, email, 'PASSWORD_CHANGE_FAILED', { reason: 'INVALID_PASSWORD' });
-      return res.status(401).json({
-        success: false,
-        message: 'Aktuelles Passwort ist incorrect',
-      });
-    }
-
-    // Hash new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password in database
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ password_hash: hashedNewPassword })
-      .eq('id', user.id);
-
-    if (updateError) {
-      throw updateError;
-    }
-
-    await logAuditEvent(user.id, email, 'PASSWORD_CHANGED');
-
-    res.json({
-      success: true,
-      message: 'Passwort erfolgreich geändert',
-    });
-  } catch (error) {
-    console.error('change-password error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Passwortänderung fehlgeschlagen',
-    });
-  }
-});
-
-// ===== ERROR HANDLER =====
-app.use((error, req, res, next) => {
-  console.error('Server Error:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Interner Server-Fehler',
-  });
-});
-
-// ===== 404 HANDLER =====
+// 404
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -612,15 +346,23 @@ app.use((req, res) => {
   });
 });
 
-// ===== START SERVER =====
+// Error Handler
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Interner Server-Fehler',
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════╗
 ║   CleaniDoc API Server                 ║
-║   Environment: ${process.env.NODE_ENV || 'development'}                     ║
-║   Port: ${PORT}                                  ║
+║   Environment: ${process.env.NODE_ENV || 'development'}               
+║   Port: ${PORT}                                 
 ║   Supabase: Connected ✓                ║
-║   API Base URL: http://localhost:${PORT}/api     ║
+║   API Base URL: http://localhost:${PORT}/api    
 ╚════════════════════════════════════════╝
   `);
 });
