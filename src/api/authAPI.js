@@ -15,8 +15,10 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
+import pkg from 'pg';
 
+const { Pool } = pkg;
 const router = express.Router();
 
 // ===== ENVIRONMENT VARIABLES =====
@@ -25,6 +27,15 @@ const JWT_REFRESH_SECRET =
   process.env.REACT_APP_JWT_REFRESH_SECRET || 'your-refresh-secret-change-in-production';
 const TOKEN_EXPIRY = '1h';
 const REFRESH_TOKEN_EXPIRY = '7d';
+
+// DB: Supabase Postgres / Render DATABASE_URL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false,
+});
 
 // ===== RATE LIMITING =====
 const authLimiter = rateLimit({
@@ -42,44 +53,14 @@ const detectRoleLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// ===== MOCK DATABASE (Replace with real database calls) =====
-const mockUsers = {
-  'admin@cleanidoc.de': {
-    id: uuidv4(),
-    email: 'admin@cleanidoc.de',
-    password: '$2b$10$SALT.HASH', // bcrypt hash of 'password123'
-    role: 'admin',
-    twoFactorEnabled: false,
-    twoFactorSecret: null,
-  },
-  'worker@cleanidoc.de': {
-    id: uuidv4(),
-    email: 'worker@cleanidoc.de',
-    password: '$2b$10$SALT.HASH',
-    role: 'employee',
-    twoFactorEnabled: false,
-    twoFactorSecret: null,
-  },
-  'customer@cleanidoc.de': {
-    id: uuidv4(),
-    email: 'customer@cleanidoc.de',
-    password: '$2b$10$SALT.HASH',
-    role: 'customer',
-    twoFactorEnabled: false,
-    twoFactorSecret: null,
-  },
-};
-
 // ===== HELPER FUNCTIONS =====
 
 /**
- * Detect user role from email domain
- * In production, query from database
+ * Detect user role from email domain (Fallback, wenn DB nichts liefert)
  */
 function detectRoleFromEmail(email) {
-  const domain = email.split('@')[1];
+  const domain = email.split('@')[1]?.toLowerCase() || '';
 
-  // Role detection rules by domain
   const roleRules = {
     'admin@cleanidoc.de': 'admin',
     'betrieb@cleanidoc.de': 'admin',
@@ -90,29 +71,35 @@ function detectRoleFromEmail(email) {
     'audit@example.com': 'customer',
   };
 
-  // Check exact email first
-  if (roleRules[email.toLowerCase()]) {
-    return roleRules[email.toLowerCase()];
-  }
+  const lowerEmail = email.toLowerCase();
 
-  // Check domain patterns
-  if (domain === 'cleanidoc.de') {
-    return 'admin';
-  }
-  if (domain === 'example.com') {
-    return 'employee';
-  }
+  // exakte Zuordnung
+  if (roleRules[lowerEmail]) return roleRules[lowerEmail];
+
+  // Domain-Patterns
+  if (domain === 'cleanidoc.de') return 'admin';
+  if (domain === 'example.com') return 'employee';
 
   // Default
   return 'customer';
 }
 
 /**
- * Verify password (In production, use bcrypt.compare)
+ * Verify password against hash from DB
+ * - Wenn kein Hash vorhanden → fallback auf Demo-Logik (>= 8 Zeichen oder 'password123')
  */
-function verifyPassword(plainPassword, hashedPassword) {
-  // For demo, accept test passwords
-  return plainPassword === 'password123' || plainPassword.length >= 8;
+async function verifyPassword(plainPassword, hashedPassword) {
+  if (!hashedPassword) {
+    return plainPassword === 'password123' || plainPassword.length >= 8;
+  }
+
+  try {
+    const match = await bcrypt.compare(plainPassword, hashedPassword);
+    return match;
+  } catch (error) {
+    console.error('Error comparing password hash:', error);
+    return false;
+  }
 }
 
 /**
@@ -150,17 +137,111 @@ function generateRefreshToken(user) {
 function verifyToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET);
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Token invalid or expired');
   }
 }
 
 /**
- * Log audit event (Mock - replace with real logging)
+ * Log audit event (Mock - replace with real DB logging if gewünscht)
  */
 async function logAuditEvent(userId, email, action, metadata = {}) {
   console.log(`[AUDIT] ${action} - User: ${email} - ${new Date().toISOString()}`, metadata);
-  // In production: Insert into audit_events table
+  // TODO: In production: Insert into public.audit_events
+  // await pool.query(
+  //   `insert into public.audit_events (user_id, email, action, metadata, occurred_at)
+  //    values ($1, $2, $3, $4, now())`,
+  //   [userId, email, action, metadata]
+  // );
+}
+
+/**
+ * Hilfsfunktion: User + Rolle aus DB holen
+ * - Sucht in public.users nach E-Mail
+ * - Joint optional mit public.profiles für Rolle
+ */
+async function fetchUserByEmail(email) {
+  const client = await pool.connect();
+  try {
+    const { rows } = await client.query(
+      `
+      select
+        u.id,
+        u.email,
+        u.password_hash,
+        u.role as user_role,
+        u.two_factor_enabled,
+        u.two_factor_secret,
+        p.role as profile_role
+      from public.users u
+      left join public.profiles p
+        on lower(p.email) = lower(u.email)
+      where lower(u.email) = lower($1)
+      limit 1;
+      `,
+      [email.toLowerCase()]
+    );
+
+    if (rows.length === 0) return null;
+
+    const row = rows[0];
+
+    const role = row.profile_role || row.user_role || detectRoleFromEmail(row.email);
+
+    return {
+      id: row.id,
+      email: row.email,
+      passwordHash: row.password_hash,
+      role,
+      twoFactorEnabled: row.two_factor_enabled === true,
+      twoFactorSecret: row.two_factor_secret || null,
+    };
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Hilfsfunktion: User nach ID laden (für refresh-token)
+ */
+async function fetchUserById(userId) {
+  const client = await pool.connect();
+  try {
+    const { rows } = await client.query(
+      `
+      select
+        u.id,
+        u.email,
+        u.password_hash,
+        u.role as user_role,
+        u.two_factor_enabled,
+        u.two_factor_secret,
+        p.role as profile_role
+      from public.users u
+      left join public.profiles p
+        on p.id = u.id
+      where u.id = $1
+      limit 1;
+      `,
+      [userId]
+    );
+
+    if (rows.length === 0) return null;
+
+    const row = rows[0];
+    const role = row.profile_role || row.user_role || detectRoleFromEmail(row.email);
+
+    return {
+      id: row.id,
+      email: row.email,
+      passwordHash: row.password_hash,
+      role,
+      twoFactorEnabled: row.two_factor_enabled === true,
+      twoFactorSecret: row.two_factor_secret || null,
+    };
+  } finally {
+    client.release();
+  }
 }
 
 // ===== API ENDPOINTS =====
@@ -186,8 +267,7 @@ router.post(
 
       const { email } = req.body;
 
-      // Check if user exists
-      const user = mockUsers[email.toLowerCase()];
+      const user = await fetchUserByEmail(email);
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -195,17 +275,14 @@ router.post(
         });
       }
 
-      // Return detected role
-      const role = detectRoleFromEmail(email);
-
       res.json({
         success: true,
-        email: email,
-        role: role,
+        email: user.email,
+        role: user.role,
         has2FA: user.twoFactorEnabled,
       });
 
-      logAuditEvent(user.id, email, 'ROLE_DETECTION_INITIATED');
+      logAuditEvent(user.id, user.email, 'ROLE_DETECTION_INITIATED');
     } catch (error) {
       console.error('detect-role error:', error);
       res.status(500).json({
@@ -240,30 +317,39 @@ router.post(
         });
       }
 
-      const { email, password, rememberMe } = req.body;
+      const { email, password, role, rememberMe } = req.body;
 
-      // Find user
-      const user = mockUsers[email.toLowerCase()];
+      const user = await fetchUserByEmail(email);
       if (!user) {
-        logAuditEvent(null, email, 'LOGIN_FAILED', { reason: 'USER_NOT_FOUND' });
+        await logAuditEvent(null, email, 'LOGIN_FAILED', { reason: 'USER_NOT_FOUND' });
         return res.status(401).json({
           success: false,
           message: 'E-Mail oder Passwort ungültig',
         });
       }
 
-      // Verify password
-      if (!verifyPassword(password, user.password)) {
-        logAuditEvent(user.id, email, 'LOGIN_FAILED', { reason: 'INVALID_PASSWORD' });
+      // Rolle prüfen: Frontend hat role aus detect-role → hier nochmal absichern
+      if (role && role !== user.role) {
+        await logAuditEvent(user.id, email, 'LOGIN_FAILED', { reason: 'ROLE_MISMATCH' });
+        return res.status(403).json({
+          success: false,
+          message: 'Rollenübereinstimmung fehlgeschlagen',
+        });
+      }
+
+      // Passwort prüfen
+      const ok = await verifyPassword(password, user.passwordHash);
+      if (!ok) {
+        await logAuditEvent(user.id, email, 'LOGIN_FAILED', { reason: 'INVALID_PASSWORD' });
         return res.status(401).json({
           success: false,
           message: 'E-Mail oder Passwort ungültig',
         });
       }
 
-      // Check if 2FA is enabled
+      // 2FA-Check
       if (user.twoFactorEnabled) {
-        logAuditEvent(user.id, email, 'LOGIN_REQUIRES_2FA');
+        await logAuditEvent(user.id, email, 'LOGIN_REQUIRES_2FA');
         return res.json({
           success: true,
           requires2FA: true,
@@ -271,18 +357,15 @@ router.post(
         });
       }
 
-      // Generate tokens
       const token = generateToken(user);
       const refreshToken = generateRefreshToken(user);
 
-      // Log successful login
-      logAuditEvent(user.id, email, 'LOGIN_SUCCESSFUL', { rememberMe });
+      await logAuditEvent(user.id, email, 'LOGIN_SUCCESSFUL', { rememberMe });
 
-      // Return user data and tokens
       res.json({
         success: true,
-        token: token,
-        refreshToken: refreshToken,
+        token,
+        refreshToken,
         user: {
           id: user.id,
           email: user.email,
@@ -320,9 +403,8 @@ router.post(
       }
 
       const { email, code } = req.body;
+      const user = await fetchUserByEmail(email);
 
-      // Find user
-      const user = mockUsers[email.toLowerCase()];
       if (!user) {
         return res.status(401).json({
           success: false,
@@ -337,26 +419,24 @@ router.post(
         });
       }
 
-      // In production, verify TOTP code using speakeasy
-      // For now, accept any 6-digit code for testing
+      // In production: TOTP gegen twoFactorSecret prüfen
       if (code.length !== 6 || !/^\d+$/.test(code)) {
-        logAuditEvent(user.id, email, '2FA_VERIFICATION_FAILED', { reason: 'INVALID_CODE' });
+        await logAuditEvent(user.id, email, '2FA_VERIFICATION_FAILED', { reason: 'INVALID_CODE' });
         return res.status(401).json({
           success: false,
           message: 'Ungültiger 2FA-Code',
         });
       }
 
-      // Generate tokens
       const token = generateToken(user);
       const refreshToken = generateRefreshToken(user);
 
-      logAuditEvent(user.id, email, '2FA_VERIFICATION_SUCCESS');
+      await logAuditEvent(user.id, email, '2FA_VERIFICATION_SUCCESS');
 
       res.json({
         success: true,
-        token: token,
-        refreshToken: refreshToken,
+        token,
+        refreshToken,
         user: {
           id: user.id,
           email: user.email,
@@ -378,7 +458,7 @@ router.post(
  * POST /api/auth/refresh-token
  * Refresh JWT token using refresh token
  */
-router.post('/refresh-token', (req, res) => {
+router.post('/refresh-token', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -390,18 +470,24 @@ router.post('/refresh-token', (req, res) => {
 
     const refreshToken = authHeader.substring(7);
 
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-
-    // Find user
-    let user = null;
-    for (const u of Object.values(mockUsers)) {
-      if (u.id === decoded.id) {
-        user = u;
-        break;
-      }
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    } catch (_err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token ungültig oder abgelaufen',
+      });
     }
 
+    if (!decoded || decoded.type !== 'refresh' || !decoded.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token ungültig',
+      });
+    }
+
+    const user = await fetchUserById(decoded.id);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -409,7 +495,6 @@ router.post('/refresh-token', (req, res) => {
       });
     }
 
-    // Generate new token
     const newToken = generateToken(user);
 
     res.json({
@@ -417,7 +502,7 @@ router.post('/refresh-token', (req, res) => {
       token: newToken,
     });
 
-    logAuditEvent(user.id, user.email, 'TOKEN_REFRESHED');
+    await logAuditEvent(user.id, user.email, 'TOKEN_REFRESHED');
   } catch (error) {
     console.error('refresh-token error:', error);
     res.status(401).json({
@@ -464,14 +549,14 @@ router.get('/validate-token', (req, res) => {
  * POST /api/auth/logout
  * Logout user and clear session
  */
-router.post('/logout', (req, res) => {
+router.post('/logout', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const decoded = jwt.decode(token);
-      if (decoded) {
-        logAuditEvent(decoded.id, decoded.email, 'LOGOUT');
+      if (decoded && decoded.id && decoded.email) {
+        await logAuditEvent(decoded.id, decoded.email, 'LOGOUT');
       }
     }
 
@@ -506,17 +591,17 @@ router.post(
       }
 
       const { email } = req.body;
-      const user = mockUsers[email.toLowerCase()];
+      const user = await fetchUserByEmail(email);
 
-      // Don't reveal if user exists
+      // Keine Info leaken, ob User existiert
       res.json({
         success: true,
         message: 'Wenn diese E-Mail registriert ist, erhalten Sie einen Reset-Link',
       });
 
       if (user) {
-        logAuditEvent(user.id, email, 'PASSWORD_RESET_REQUESTED');
-        // In production: Send password reset email
+        await logAuditEvent(user.id, email, 'PASSWORD_RESET_REQUESTED');
+        // TODO: In production: Reset-Token erzeugen + E-Mail verschicken
       }
     } catch (error) {
       console.error('request-password-reset error:', error);
@@ -548,7 +633,10 @@ router.post(
 
       const { token, newPassword } = req.body;
 
-      // In production: Verify reset token and update password
+      // TODO: Reset-Token prüfen, User identifizieren, Passwort aktualisieren:
+      // const passwordHash = await bcrypt.hash(newPassword, 10);
+      // update public.users set password_hash = passwordHash where id = <aus Token>;
+
       res.json({
         success: true,
         message: 'Passwort erfolgreich zurückgesetzt',
